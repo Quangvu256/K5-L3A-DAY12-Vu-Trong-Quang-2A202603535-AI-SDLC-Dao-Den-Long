@@ -1,0 +1,72 @@
+{
+  "contractVersion": "2.0.0",
+  "phase": 3,
+  "scenarioId": "p3_mist_oil_drain_sanctuary",
+  "levelId": "level-1",
+  "seed": 42,
+  "status": "running",
+  "ticksElapsed": 100,
+  "simTimeSec": 5,
+  "player": {
+    "x": 8.4,
+    "z": 0,
+    "lanternOil": 100,
+    "carriedFireflies": 0,
+    "flaresUsed": 0,
+    "flareCooldownTicks": 0
+  },
+  "lanternsLit": 1,
+  "lanternsTotal": 3,
+  "resonanceActive": false,
+  "lanterns": [
+    {
+      "id": "L1",
+      "lit": true,
+      "charge": 100
+    },
+    {
+      "id": "L2",
+      "lit": false,
+      "charge": 0
+    },
+    {
+      "id": "L3",
+      "lit": false,
+      "charge": 0
+    }
+  ],
+  "firefliesCollected": 2,
+  "firefliesTotal": 6,
+  "shadows": [
+    {
+      "id": "S1",
+      "x": 0,
+      "z": 11.5,
+      "aiState": "patrol"
+    },
+    {
+      "id": "S2",
+      "x": 10.707104,
+      "z": 9.292896,
+      "aiState": "patrol"
+    }
+  ],
+  "events": [
+    {
+      "tick": 6,
+      "type": "firefly_collected",
+      "entityId": "F1"
+    },
+    {
+      "tick": 16,
+      "type": "firefly_collected",
+      "entityId": "F2"
+    },
+    {
+      "tick": 79,
+      "type": "lantern_lit",
+      "entityId": "L1"
+    }
+  ],
+  "digestSha256": "846933677aecd050e4661f2007605edc97de491d2521a99511d5956e58861f65"
+}

@@ -3,8 +3,8 @@ import { DT, round6 } from '../core/constants';
 import { createInitialState, stepSimulation } from '../core/engine';
 import { InputFrame, ScenarioFile, ShadowAiState, SimEvent } from '../core/types';
 
-export const CONTRACT_VERSION = '1.1.0';
-export const CONTRACT_PHASE = 2;
+export const CONTRACT_VERSION = '2.0.0';
+export const CONTRACT_PHASE = 3;
 
 export interface HeadlessResult {
   contractVersion: string;
@@ -18,13 +18,19 @@ export interface HeadlessResult {
   player: {
     x: number;
     z: number;
-    hp: number;
+    lanternOil: number;
     carriedFireflies: number;
     flaresUsed: number;
     flareCooldownTicks: number;
   };
   lanternsLit: number;
   lanternsTotal: number;
+  resonanceActive: boolean;
+  lanterns: Array<{
+    id: string;
+    lit: boolean;
+    charge: number;
+  }>;
   firefliesCollected: number;
   firefliesTotal: number;
   shadows: Array<{
@@ -119,13 +125,19 @@ export function runScenario(rawScenario: unknown): HeadlessResult {
     player: {
       x: state.player.x,
       z: state.player.z,
-      hp: state.player.hp,
+      lanternOil: state.player.lanternOil,
       carriedFireflies: state.player.carriedFireflies,
       flaresUsed: state.player.flaresUsed,
       flareCooldownTicks: state.player.flareCooldownTicks,
     },
     lanternsLit: state.lanterns.filter((l) => l.lit).length,
     lanternsTotal: state.lanterns.length,
+    resonanceActive: state.resonanceActive,
+    lanterns: state.lanterns.map((l) => ({
+      id: l.id,
+      lit: l.lit,
+      charge: l.charge,
+    })),
     firefliesCollected: state.fireflies.filter((f) => f.collected).length,
     firefliesTotal: state.fireflies.length,
     shadows: state.shadows.map((s) => ({

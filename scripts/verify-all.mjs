@@ -13,16 +13,19 @@ function runBin(bin, args, capture = false) {
   return execFileSync(bin, args, opts);
 }
 
-console.log('=== [1/5] Core Purity Guard ===');
+console.log('=== [1/6] Core Purity Guard ===');
 runBin('node', ['scripts/check-core-purity.mjs']);
 
-console.log('\n=== [2/5] TypeScript Typecheck ===');
+console.log('\n=== [2/6] No-Skipped-Tests Guard ===');
+runBin('node', ['scripts/check-no-skipped-tests.mjs']);
+
+console.log('\n=== [3/6] TypeScript Typecheck ===');
 runBin('npm', ['run', 'typecheck']);
 
-console.log('\n=== [3/5] Unit & Contract Tests (Vitest) ===');
+console.log('\n=== [4/6] Unit & Contract Tests (Vitest) ===');
 runBin('npm', ['test']);
 
-console.log('\n=== [4/5] Headless Scenario Execution & Determinism Double-Check ===');
+console.log('\n=== [5/6] Headless Scenario Execution & Determinism Double-Check ===');
 const scenariosDir = resolve('scenarios');
 const scenarioFiles = readdirSync(scenariosDir)
   .filter((f) => f.endsWith('.json'))
@@ -43,8 +46,8 @@ for (const file of scenarioFiles) {
 
   const parsed = JSON.parse(out1);
   console.log(
-    `[OK] ${file} -> level=${parsed.levelId}, status=${parsed.status}, ticks=${parsed.ticksElapsed}, lanterns=${parsed.lanternsLit}/${parsed.lanternsTotal}, digest=${parsed.digestSha256.slice(0, 12)}...`
+    `[OK] ${file} -> level=${parsed.levelId}, status=${parsed.status}, ticks=${parsed.ticksElapsed}, lanterns=${parsed.lanternsLit}/${parsed.lanternsTotal}, resonance=${parsed.resonanceActive}, oil=${parsed.player.lanternOil}, digest=${parsed.digestSha256.slice(0, 12)}...`
   );
 }
 
-console.log('\n=== [5/5] Verification Gate PASSED ===');
+console.log('\n=== [6/6] Verification Gate PASSED ===');

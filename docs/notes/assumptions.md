@@ -56,3 +56,28 @@
 - **AC-2.3:** Level 2 ("Bến Sương Mù") chơi được và thắng khi thắp đủ `4/4` đèn.
 - **AC-2.4:** Toàn bộ 3 scenario Phase 1 không đổi file đầu vào vẫn vượt qua hồi quy.
 - **AC-2.5:** Core Purity Guard (`scripts/check-core-purity.mjs`) tự động chặn mọi phụ thuộc DOM/Three.js/random trong `src/core/`.
+
+---
+
+## Phase 3 — Ticket-03 (Breaking Rule Replacement: Lantern Oil, Lantern Decay & Resonance Chain)
+
+### 1. Explicit `[ASSUMPTION]` Decisions
+1. **Thay thế `player.hp` bằng `player.lanternOil` (`[ASSUMPTION]`):**
+   - `OIL_MAX = 100`.
+   - Khi Mây đứng ngoài mọi vùng an toàn `LANTERN_SAFE_RADIUS` của đèn đã sáng (trong sương đen): dầu hao `OIL_MIST_DRAIN_PER_SEC = 1.8` (`0.09` / tick).
+   - Khi Mây đứng trong vùng an toàn của ít nhất một đèn đã sáng: dầu hồi `OIL_SANCTUARY_RECHARGE_PER_SEC = 12.0` (`0.6` / tick, tối đa `100`).
+   - Va chạm trực tiếp với Bóng Mực không bị choáng trừ `OIL_SHADOW_HIT_COST = 35` dầu (kèm `20` ticks bất tử). Khi `lanternOil <= 0`, game kết thúc `status = "lost"`.
+2. **Thay thế đèn sáng vĩnh viễn bằng `charge (0..100)` & Chuỗi Cộng Hưởng (`Resonance Chain`) (`[ASSUMPTION]`):**
+   - Thắp Đèn Lồng Lớn đặt `lit = true, charge = 100`.
+   - Khi số đèn sáng `< 2` (`resonanceActive = false`) và có Bóng Mực không bị choáng ở khoảng cách `<= LANTERN_DECAY_SHADOW_RADIUS (9.0)` quanh một đèn đã sáng, đèn đó bị sương đen rút `LANTERN_DECAY_PER_SEC = 8.0` (`0.4` / tick). Khi `charge <= 0`, đèn tắt (`lit = false`) và phát sự kiện `'lantern_extinguished'`.
+   - Khi đồng thời có `>= 2` đèn sáng, **Resonance Chain** kích hoạt (`resonanceActive = true`): mọi đèn đang sáng miễn nhiễm với sương đen và tự phục hồi `LANTERN_RESONANCE_RECOVER_PER_SEC = 4.0` (`+0.2` / tick, tối đa `100`).
+   - Nhấn `interact` gần đèn đã sáng nhưng đang suy giảm (`charge < 100`) sẽ khơi lại sáng `charge = 100` miễn phí (không tốn đom đóm).
+3. **Test Contract v2.0.0 (`[ASSUMPTION]`):**
+   - Thay `player.hp` bằng `player.lanternOil`; thêm `resonanceActive` và `lanterns: [{ id, lit, charge }]`. Chi tiết di trú test xem [docs/notes/phase-3-change-log.md](phase-3-change-log.md).
+
+### 2. Acceptance Criteria (Phase 3)
+- **AC-3.1:** Dầu đèn (`lanternOil`) tụt trong sương đen (`-1.8/s`), hồi trong vùng an toàn (`+12/s`), tụt `-35` khi chạm Bóng Mực và thua (`lost`) khi về `0`.
+- **AC-3.2:** Khi `< 2` đèn sáng và có Bóng Mực trong `9.0` đơn vị, đèn mất `charge` (`-8/s`) và tắt (`lit=false`) khi `charge=0`.
+- **AC-3.3:** Khi `>= 2` đèn sáng cùng lúc, `resonanceActive = true` bảo vệ và hồi `charge` (`+4/s`); `interact` gần đèn đang sáng có thể khơi lại `charge = 100`.
+- **AC-3.4:** Các test bị ảnh hưởng bởi luật mới được di trú tường minh kèm ADR, `check-no-skipped-tests.mjs` đạt `0` test bị tắt.
+- **AC-3.5:** Các scenario không bị thay thế luật (`p1_collect_and_win`, `p1_boundary_and_obstacle`, `p2_flare_repel_shadow`, `p2_level2_win`) tiếp tục đạt 100%.

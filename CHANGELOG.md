@@ -25,3 +25,12 @@ All notable changes to **Đảo Đèn Lồng** are documented per SDLC phase.
 - Phase 2 scenarios (`p2_flare_repel_shadow.json`, `p2_level2_win.json`), 14 passing tests, and real proof artifacts (`docs/proof/phase-2/`).
 ### Fixed
 - Aligned `stunTicks` decrement timing with `invulnTicks`/`flareCooldownTicks` at tick start so stun lasts full 60 ticks after cast.
+
+## [0.3.0] - 2026-11-21 (Phase 3 — Tag `phase-3`)
+### Changed (Breaking per Ticket-03 ADR)
+- Replaced discrete `player.hp` with continuous `player.lanternOil` (`0..100`, mist drain `-1.8/s`, sanctuary recharge `+12/s`, shadow hit `-35`).
+- Replaced permanently lit lanterns with `charge (0..100)` decay (`-8/s` near unrepelled shadow when `< 2` lit) and **Resonance Chain** (`>= 2` lit halts decay & recovers `+4/s`), plus free rekindle on `E`.
+- Bumped Test Contract to `2.0.0` (`docs/notes/phase-3-change-log.md`) and explicitly migrated Phase 1–2 tests (0 skipped tests).
+### Added
+- AI Harness v3: `scripts/check-no-skipped-tests.mjs` wired into `verify-all.mjs`, CI, and `AGENTS.md`.
+- Phase 3 scenarios (`p3_lantern_decay_and_resonance.json`, `p3_mist_oil_drain_sanctuary.json`), 3D Resonance beam & HUD oil gauge, and real proof artifacts (`docs/proof/phase-3/`).

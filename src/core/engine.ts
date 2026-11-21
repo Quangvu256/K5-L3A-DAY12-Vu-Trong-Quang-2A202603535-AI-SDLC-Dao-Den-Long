@@ -6,9 +6,17 @@ import {
   FLARE_KNOCKBACK,
   FLARE_RADIUS,
   FLARE_STUN_TICKS,
+  LANTERN_CHARGE_MAX,
+  LANTERN_DECAY_PER_SEC,
+  LANTERN_DECAY_SHADOW_RADIUS,
   LANTERN_INTERACT_RADIUS,
+  LANTERN_RESONANCE_MIN_COUNT,
+  LANTERN_RESONANCE_RECOVER_PER_SEC,
   LANTERN_SAFE_RADIUS,
-  PLAYER_MAX_HP,
+  OIL_MAX,
+  OIL_MIST_DRAIN_PER_SEC,
+  OIL_SANCTUARY_RECHARGE_PER_SEC,
+  OIL_SHADOW_HIT_COST,
   PLAYER_RADIUS,
   PLAYER_SPEED,
   SHADOW_ALERT_RADIUS,
@@ -117,6 +125,25 @@ function isPointInSanctuary(x: number, z: number, lanterns: GreatLantern[]): boo
   return false;
 }
 
+function findNearestLantern(
+  x: number,
+  z: number,
+  lanterns: GreatLantern[],
+  predicate: (l: GreatLantern) => boolean
+): GreatLantern | null {
+  let closest: GreatLantern | null = null;
+  let closestDist = Infinity;
+  for (const l of lanterns) {
+    if (!predicate(l)) continue;
+    const dist = Math.hypot(x - l.x, z - l.z);
+    if (dist <= LANTERN_INTERACT_RADIUS && dist < closestDist) {
+      closestDist = dist;
+      closest = l;
+    }
+  }
+  return closest;
+}
+
 function moveShadowAlongPatrol(shadow: InkShadow, stepDist: number): { x: number; z: number } {
   const target = shadow.targetIndex === 0 ? shadow.patrolA : shadow.patrolB;
   const dx = target.x - shadow.x;
@@ -147,12 +174,13 @@ export function createInitialState(levelId = 'level-1', seed = 42): GameState {
     islandRadius: level.islandRadius,
     status: 'running',
     lastFlareTick: -999,
+    resonanceActive: false,
     player: {
       x: round6(level.playerStart.x),
       z: round6(level.playerStart.z),
       facingX: 0,
       facingZ: 1,
-      hp: PLAYER_MAX_HP,
+      lanternOil: OIL_MAX,
       invulnTicks: 0,
       carriedFireflies: 0,
       flareCooldownTicks: 0,
@@ -160,7 +188,7 @@ export function createInitialState(levelId = 'level-1', seed = 42): GameState {
     },
     obstacles: level.obstacles.map((o) => ({ ...o })),
     fireflies: level.fireflies.map((f) => ({ ...f, collected: false })),
-    lanterns: level.lanterns.map((l) => ({ ...l, lit: false })),
+    lanterns: level.lanterns.map((l) => ({ ...l, lit: false, charge: 0 })),
     shadows: level.shadows.map((s) => ({
       id: s.id,
       x: round6(s.patrolA.x),
@@ -235,26 +263,37 @@ export function stepSimulation(prevState: GameState, input: InputFrame): GameSta
     }
   }
 
-  // 3. Great Lantern ignition
-  if (input.interact && state.player.carriedFireflies >= FIREFLIES_PER_LANTERN) {
-    let closestLantern: GreatLantern | null = null;
-    let closestDist = Infinity;
-    for (const lantern of state.lanterns) {
-      if (lantern.lit) continue;
-      const dist = Math.hypot(state.player.x - lantern.x, state.player.z - lantern.z);
-      if (dist <= LANTERN_INTERACT_RADIUS && dist < closestDist) {
-        closestDist = dist;
-        closestLantern = lantern;
-      }
-    }
-    if (closestLantern) {
-      closestLantern.lit = true;
+  // 3. Great Lantern ignition or free rekindle (Phase 3)
+  if (input.interact) {
+    const unlit =
+      state.player.carriedFireflies >= FIREFLIES_PER_LANTERN
+        ? findNearestLantern(state.player.x, state.player.z, state.lanterns, (l) => !l.lit)
+        : null;
+
+    if (unlit) {
+      unlit.lit = true;
+      unlit.charge = LANTERN_CHARGE_MAX;
       state.player.carriedFireflies -= FIREFLIES_PER_LANTERN;
       state.events.push({
         tick: state.tick,
         type: 'lantern_lit',
-        entityId: closestLantern.id,
+        entityId: unlit.id,
       });
+    } else {
+      const dimmingLit = findNearestLantern(
+        state.player.x,
+        state.player.z,
+        state.lanterns,
+        (l) => l.lit && l.charge < LANTERN_CHARGE_MAX
+      );
+      if (dimmingLit) {
+        dimmingLit.charge = LANTERN_CHARGE_MAX;
+        state.events.push({
+          tick: state.tick,
+          type: 'lantern_rekindled',
+          entityId: dimmingLit.id,
+        });
+      }
     }
   }
 
@@ -297,7 +336,7 @@ export function stepSimulation(prevState: GameState, input: InputFrame): GameSta
   }
 
   // 5. Ink Shadow AI state machine & movement
-  const playerInSanctuary = isPointInSanctuary(state.player.x, state.player.z, state.lanterns);
+  const playerInSanctuaryBeforeMove = isPointInSanctuary(state.player.x, state.player.z, state.lanterns);
   const patrolStep = SHADOW_SPEED * DT;
   const chaseStep = SHADOW_CHASE_SPEED * DT;
 
@@ -309,7 +348,7 @@ export function stepSimulation(prevState: GameState, input: InputFrame): GameSta
 
     const distToPlayer = Math.hypot(state.player.x - shadow.x, state.player.z - shadow.z);
 
-    if (playerInSanctuary) {
+    if (playerInSanctuaryBeforeMove) {
       shadow.aiState = 'patrol';
     } else if (shadow.aiState === 'patrol' && distToPlayer <= SHADOW_ALERT_RADIUS) {
       shadow.aiState = 'alert';
@@ -348,13 +387,70 @@ export function stepSimulation(prevState: GameState, input: InputFrame): GameSta
     }
   }
 
-  // 6. Shadow contact damage (only non-repelled shadows deal damage)
+  // 6. Lantern Charge Decay & Resonance Chain (Phase 3)
+  const litCount = state.lanterns.filter((l) => l.lit).length;
+  const prevResonance = state.resonanceActive;
+  state.resonanceActive = litCount >= LANTERN_RESONANCE_MIN_COUNT;
+  if (!prevResonance && state.resonanceActive) {
+    state.events.push({ tick: state.tick, type: 'resonance_activated' });
+  }
+
+  for (const lantern of state.lanterns) {
+    if (!lantern.lit) continue;
+    if (state.resonanceActive) {
+      lantern.charge = round6(
+        Math.min(LANTERN_CHARGE_MAX, lantern.charge + LANTERN_RESONANCE_RECOVER_PER_SEC * DT)
+      );
+    } else {
+      const shadowNear = state.shadows.some(
+        (s) =>
+          s.aiState !== 'repelled' &&
+          Math.hypot(s.x - lantern.x, s.z - lantern.z) <= LANTERN_DECAY_SHADOW_RADIUS
+      );
+      if (shadowNear) {
+        const prevCharge = lantern.charge;
+        lantern.charge = round6(Math.max(0, lantern.charge - LANTERN_DECAY_PER_SEC * DT));
+        if (prevCharge === LANTERN_CHARGE_MAX && lantern.charge < LANTERN_CHARGE_MAX) {
+          state.events.push({
+            tick: state.tick,
+            type: 'lantern_dimming',
+            entityId: lantern.id,
+          });
+        }
+        if (lantern.charge <= 0) {
+          lantern.charge = 0;
+          lantern.lit = false;
+          state.events.push({
+            tick: state.tick,
+            type: 'lantern_extinguished',
+            entityId: lantern.id,
+          });
+        }
+      }
+    }
+  }
+
+  // Re-evaluate resonance if a lantern just extinguished
+  state.resonanceActive = state.lanterns.filter((l) => l.lit).length >= LANTERN_RESONANCE_MIN_COUNT;
+
+  // 7. Player Lantern Oil (mist drain vs sanctuary recharge) & Shadow contact cost
+  const inSanctuary = isPointInSanctuary(state.player.x, state.player.z, state.lanterns);
+  if (inSanctuary) {
+    state.player.lanternOil = round6(
+      Math.min(OIL_MAX, state.player.lanternOil + OIL_SANCTUARY_RECHARGE_PER_SEC * DT)
+    );
+  } else {
+    state.player.lanternOil = round6(
+      Math.max(0, state.player.lanternOil - OIL_MIST_DRAIN_PER_SEC * DT)
+    );
+  }
+
   if (state.player.invulnTicks === 0) {
     for (const shadow of state.shadows) {
       if (shadow.aiState === 'repelled') continue;
       const dist = Math.hypot(state.player.x - shadow.x, state.player.z - shadow.z);
       if (dist <= SHADOW_CONTACT_RADIUS) {
-        state.player.hp = Math.max(0, state.player.hp - 1);
+        state.player.lanternOil = round6(Math.max(0, state.player.lanternOil - OIL_SHADOW_HIT_COST));
         state.player.invulnTicks = SHADOW_INVULN_TICKS;
         state.events.push({
           tick: state.tick,
@@ -366,11 +462,11 @@ export function stepSimulation(prevState: GameState, input: InputFrame): GameSta
     }
   }
 
-  // 7. Terminal win/loss checks
+  // 8. Terminal win/loss checks
   if (state.lanterns.every((l) => l.lit)) {
     state.status = 'won';
     state.events.push({ tick: state.tick, type: 'game_won' });
-  } else if (state.player.hp <= 0) {
+  } else if (state.player.lanternOil <= 0) {
     state.status = 'lost';
     state.events.push({ tick: state.tick, type: 'game_lost' });
   }

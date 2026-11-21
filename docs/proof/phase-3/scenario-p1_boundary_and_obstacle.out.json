@@ -1,0 +1,56 @@
+{
+  "contractVersion": "2.0.0",
+  "phase": 3,
+  "scenarioId": "p1_boundary_and_obstacle",
+  "levelId": "level-1",
+  "seed": 42,
+  "status": "running",
+  "ticksElapsed": 160,
+  "simTimeSec": 8,
+  "player": {
+    "x": -23.176553,
+    "z": -3.226046,
+    "lanternOil": 85.6,
+    "carriedFireflies": 0,
+    "flaresUsed": 0,
+    "flareCooldownTicks": 0
+  },
+  "lanternsLit": 0,
+  "lanternsTotal": 3,
+  "resonanceActive": false,
+  "lanterns": [
+    {
+      "id": "L1",
+      "lit": false,
+      "charge": 0
+    },
+    {
+      "id": "L2",
+      "lit": false,
+      "charge": 0
+    },
+    {
+      "id": "L3",
+      "lit": false,
+      "charge": 0
+    }
+  ],
+  "firefliesCollected": 0,
+  "firefliesTotal": 6,
+  "shadows": [
+    {
+      "id": "S1",
+      "x": 0,
+      "z": 9,
+      "aiState": "patrol"
+    },
+    {
+      "id": "S2",
+      "x": 12.055464,
+      "z": 7.944536,
+      "aiState": "patrol"
+    }
+  ],
+  "events": [],
+  "digestSha256": "7219c7e40edcc1388b64114e4da50a3cd1f2f7416064d7906951c9fb5f26c1f1"
+}

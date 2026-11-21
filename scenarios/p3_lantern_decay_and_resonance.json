@@ -1,0 +1,20 @@
+{
+  "scenarioId": "p3_lantern_decay_and_resonance",
+  "levelId": "level-1",
+  "seed": 42,
+  "maxTicks": 150,
+  "inputs": [
+    { "fromTick": 1, "toTick": 28, "moveX": 1, "moveZ": 0, "interact": false },
+    { "fromTick": 29, "toTick": 29, "moveX": 0, "moveZ": 0, "interact": true },
+    { "fromTick": 30, "toTick": 65, "moveX": 0, "moveZ": 0, "interact": false },
+    { "fromTick": 66, "toTick": 93, "moveX": -1, "moveZ": 0, "interact": false },
+    { "fromTick": 94, "toTick": 121, "moveX": 0, "moveZ": -1, "interact": false },
+    { "fromTick": 122, "toTick": 122, "moveX": 0, "moveZ": 0, "interact": true },
+    { "fromTick": 123, "toTick": 150, "moveX": 0, "moveZ": 0, "interact": false }
+  ],
+  "expected": {
+    "status": "running",
+    "lanternsLit": 2,
+    "resonanceActive": true
+  }
+}

@@ -5,8 +5,10 @@ import {
   FLARE_COOLDOWN_TICKS,
   FLARE_STUN_TICKS,
   ISLAND_RADIUS,
+  LANTERN_CHARGE_MAX,
   LANTERN_SAFE_RADIUS,
-  PLAYER_MAX_HP,
+  OIL_MAX,
+  OIL_MIST_DRAIN_PER_SEC,
   PLAYER_RADIUS,
   PLAYER_SPEED,
   SHADOW_INVULN_TICKS,
@@ -96,9 +98,10 @@ describe('Phase 1 Core Simulation', () => {
     }
   });
 
-  it('applies invulnerability frames on shadow hit and ends in lost when HP hits 0', () => {
+  // Migrated per ADR docs/notes/phase-3-change-log.md: discrete player.hp replaced by continuous player.lanternOil (100 -> 0)
+  it('applies invulnerability frames on shadow hit and ends in lost when lanternOil hits 0', () => {
     let state = createInitialState('level-1', 42);
-    expect(state.player.hp).toBe(PLAYER_MAX_HP);
+    expect(state.player.lanternOil).toBe(OIL_MAX);
     let sawInvuln = false;
 
     for (let i = 0; i < 38; i += 1) {
@@ -113,7 +116,7 @@ describe('Phase 1 Core Simulation', () => {
     }
 
     expect(sawInvuln).toBe(true);
-    expect(state.player.hp).toBe(0);
+    expect(state.player.lanternOil).toBe(0);
     expect(state.status).toBe('lost');
   });
 });
@@ -121,14 +124,12 @@ describe('Phase 1 Core Simulation', () => {
 describe('Phase 2 Core Features: Light Flare, Shadow AI & Level 2', () => {
   it('transitions shadow AI patrol -> alert -> chase -> patrol when entering sanctuary', () => {
     let state = createInitialState('level-1', 42);
-    // Light L1 first so a sanctuary exists at (9,0)
     for (let i = 0; i < 28; i += 1) {
       state = stepSimulation(state, { moveX: 1, moveZ: 0, interact: false });
     }
     state = stepSimulation(state, { moveX: 0, moveZ: 0, interact: true });
     expect(state.lanterns[0].lit).toBe(true);
 
-    // Walk back to (0,0), then South toward S1
     for (let i = 0; i < 28; i += 1) {
       state = stepSimulation(state, { moveX: -1, moveZ: 0, interact: false });
     }
@@ -143,7 +144,6 @@ describe('Phase 2 Core Features: Light Flare, Shadow AI & Level 2', () => {
     expect(observedStates.has('alert')).toBe(true);
     expect(observedStates.has('chase')).toBe(true);
 
-    // Run North-East into L1 sanctuary (9,0) -> shadow must return to patrol
     for (let i = 0; i < 50; i += 1) {
       const dx = 9 - state.player.x;
       const dz = 0 - state.player.z;
@@ -153,14 +153,13 @@ describe('Phase 2 Core Features: Light Flare, Shadow AI & Level 2', () => {
     expect(state.shadows[0].aiState).toBe('patrol');
   });
 
+  // Migrated per ADR docs/notes/phase-3-change-log.md: checks zero shadow_hit oil penalty while shadow is stunned
   it('requires firefly & respects cooldown for Light Flare, repels shadows, and prevents stunned contact damage', () => {
     let state = createInitialState('level-1', 42);
-    // Attempt flare with 0 fireflies -> does nothing
     state = stepSimulation(state, { moveX: 0, moveZ: 0, interact: false, flare: true });
     expect(state.player.flaresUsed).toBe(0);
     expect(state.player.flareCooldownTicks).toBe(0);
 
-    // Collect F1 & F2 (2 fireflies), go South to S1, cast flare
     for (let i = 0; i < 20; i += 1) {
       state = stepSimulation(state, { moveX: 1, moveZ: 0, interact: false });
     }
@@ -177,7 +176,8 @@ describe('Phase 2 Core Features: Light Flare, Shadow AI & Level 2', () => {
       }
     }
 
-    const hpBefore = state.player.hp;
+    const hitsBefore = state.events.filter((e) => e.type === 'shadow_hit').length;
+    const oilBefore = state.player.lanternOil;
     const distBefore = Math.hypot(state.shadows[0].x - state.player.x, state.shadows[0].z - state.player.z);
     state = stepSimulation(state, { moveX: 0, moveZ: 0, interact: false, flare: true });
 
@@ -189,17 +189,16 @@ describe('Phase 2 Core Features: Light Flare, Shadow AI & Level 2', () => {
     const distAfter = Math.hypot(state.shadows[0].x - state.player.x, state.shadows[0].z - state.player.z);
     expect(distAfter).toBeGreaterThan(distBefore);
 
-    // Immediate second flare attempt during cooldown must be rejected
     state = stepSimulation(state, { moveX: 0, moveZ: 0, interact: false, flare: true });
     expect(state.player.flaresUsed).toBe(1);
 
-    // Walk directly on top of repelled shadow -> zero damage while stunned
     for (let i = 0; i < 15; i += 1) {
       const dx = state.shadows[0].x - state.player.x;
       const dz = state.shadows[0].z - state.player.z;
       state = stepSimulation(state, { moveX: dx, moveZ: dz, interact: false });
     }
-    expect(state.player.hp).toBe(hpBefore);
+    expect(state.events.filter((e) => e.type === 'shadow_hit').length).toBe(hitsBefore);
+    expect(state.player.lanternOil).toBeGreaterThan(oilBefore - 5);
   });
 
   it('initializes Level 2 with 4 lanterns, 8 fireflies, 3 shadows, and radius 28', () => {
@@ -209,5 +208,89 @@ describe('Phase 2 Core Features: Light Flare, Shadow AI & Level 2', () => {
     expect(l2.fireflies).toHaveLength(8);
     expect(l2.shadows).toHaveLength(3);
     expect(l2.obstacles).toHaveLength(4);
+  });
+});
+
+describe('Phase 3 Core Mechanics: Lantern Oil, Decay & Resonance Chain', () => {
+  it('drains lanternOil in dark mist and recharges inside a lit lantern sanctuary', () => {
+    let state = createInitialState('level-1', 42);
+    for (let i = 0; i < 28; i += 1) {
+      state = stepSimulation(state, { moveX: 1, moveZ: 0, interact: false });
+    }
+    expect(state.player.lanternOil).toBeCloseTo(OIL_MAX - 28 * OIL_MIST_DRAIN_PER_SEC * DT, 5);
+
+    for (let i = 0; i < 50; i += 1) {
+      state = stepSimulation(state, { moveX: 0, moveZ: 0, interact: false });
+    }
+    const oilAfterMist = state.player.lanternOil;
+    expect(oilAfterMist).toBeLessThan(95);
+
+    state = stepSimulation(state, { moveX: 0, moveZ: 0, interact: true });
+    expect(state.lanterns[0].lit).toBe(true);
+    for (let i = 0; i < 20; i += 1) {
+      state = stepSimulation(state, { moveX: 0, moveZ: 0, interact: false });
+    }
+    expect(state.player.lanternOil).toBe(OIL_MAX);
+  });
+
+  it('dims and extinguishes an isolated lit lantern when shadow lingers within 9.0 units, and supports free rekindle', () => {
+    let state = createInitialState('level-1', 42);
+    for (let i = 0; i < 28; i += 1) {
+      state = stepSimulation(state, { moveX: 1, moveZ: 0, interact: false });
+    }
+    state = stepSimulation(state, { moveX: 0, moveZ: 0, interact: true });
+    expect(state.lanterns[0].lit).toBe(true);
+    expect(state.lanterns[0].charge).toBeGreaterThanOrEqual(LANTERN_CHARGE_MAX - 0.5);
+
+    // Wait 40 ticks -> S2 passes near L1 and dims its charge below 100
+    for (let i = 0; i < 40; i += 1) {
+      state = stepSimulation(state, { moveX: 0, moveZ: 0, interact: false });
+    }
+    const dimmedBeforeRekindle = state.lanterns[0].charge;
+    expect(dimmedBeforeRekindle).toBeLessThan(95);
+
+    // Rekindle L1 for free with interact (carrying 0 fireflies)
+    expect(state.player.carriedFireflies).toBe(0);
+    state = stepSimulation(state, { moveX: 0, moveZ: 0, interact: true });
+    expect(state.lanterns[0].charge).toBeGreaterThan(dimmedBeforeRekindle);
+    expect(state.lanterns[0].charge).toBeGreaterThanOrEqual(LANTERN_CHARGE_MAX - 0.5);
+    expect(state.events.some((e) => e.type === 'lantern_rekindled')).toBe(true);
+
+    // Leave unattended inside sanctuary for 500 ticks -> S2 repeated passes extinguish L1
+    for (let i = 0; i < 500; i += 1) {
+      state = stepSimulation(state, { moveX: 0, moveZ: 0, interact: false });
+      if (!state.lanterns[0].lit) break;
+    }
+    expect(state.lanterns[0].lit).toBe(false);
+    expect(state.lanterns[0].charge).toBe(0);
+    expect(state.events.some((e) => e.type === 'lantern_extinguished')).toBe(true);
+  });
+
+  it('activates Resonance Chain with >= 2 lit lanterns, halting decay and recovering charge', () => {
+    let state = createInitialState('level-1', 42);
+    for (let i = 0; i < 28; i += 1) {
+      state = stepSimulation(state, { moveX: 1, moveZ: 0, interact: false });
+    }
+    state = stepSimulation(state, { moveX: 0, moveZ: 0, interact: true });
+    for (let i = 0; i < 36; i += 1) {
+      state = stepSimulation(state, { moveX: 0, moveZ: 0, interact: false });
+    }
+    const dimmedCharge = state.lanterns[0].charge;
+    expect(dimmedCharge).toBeLessThan(100);
+
+    for (let i = 0; i < 28; i += 1) {
+      state = stepSimulation(state, { moveX: -1, moveZ: 0, interact: false });
+    }
+    for (let i = 0; i < 28; i += 1) {
+      state = stepSimulation(state, { moveX: 0, moveZ: -1, interact: false });
+    }
+    const chargeBeforeResonance = state.lanterns[0].charge;
+    state = stepSimulation(state, { moveX: 0, moveZ: 0, interact: true });
+    expect(state.resonanceActive).toBe(true);
+
+    for (let i = 0; i < 40; i += 1) {
+      state = stepSimulation(state, { moveX: 0, moveZ: 0, interact: false });
+    }
+    expect(state.lanterns[0].charge).toBeGreaterThan(chargeBeforeResonance);
   });
 });

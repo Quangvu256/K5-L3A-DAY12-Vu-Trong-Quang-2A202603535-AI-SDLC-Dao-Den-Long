@@ -1,0 +1,76 @@
+{
+  "contractVersion": "2.0.0",
+  "phase": 3,
+  "scenarioId": "p1_shadow_collision_loss",
+  "levelId": "level-1",
+  "seed": 42,
+  "status": "lost",
+  "ticksElapsed": 62,
+  "simTimeSec": 3.1,
+  "player": {
+    "x": 0,
+    "z": 11.4,
+    "lanternOil": 0,
+    "carriedFireflies": 0,
+    "flaresUsed": 0,
+    "flareCooldownTicks": 0
+  },
+  "lanternsLit": 0,
+  "lanternsTotal": 3,
+  "resonanceActive": false,
+  "lanterns": [
+    {
+      "id": "L1",
+      "lit": false,
+      "charge": 0
+    },
+    {
+      "id": "L2",
+      "lit": false,
+      "charge": 0
+    },
+    {
+      "id": "L3",
+      "lit": false,
+      "charge": 0
+    }
+  ],
+  "firefliesCollected": 0,
+  "firefliesTotal": 6,
+  "shadows": [
+    {
+      "id": "S1",
+      "x": 0,
+      "z": 11.4,
+      "aiState": "chase"
+    },
+    {
+      "id": "S2",
+      "x": 12.585792,
+      "z": 7.414208,
+      "aiState": "patrol"
+    }
+  ],
+  "events": [
+    {
+      "tick": 22,
+      "type": "shadow_hit",
+      "entityId": "S1"
+    },
+    {
+      "tick": 42,
+      "type": "shadow_hit",
+      "entityId": "S1"
+    },
+    {
+      "tick": 62,
+      "type": "shadow_hit",
+      "entityId": "S1"
+    },
+    {
+      "tick": 62,
+      "type": "game_lost"
+    }
+  ],
+  "digestSha256": "1ac6f6fea9ab98c21aa03e6a430e63e3e6e86d10f5edab53a2651916e92388a5"
+}

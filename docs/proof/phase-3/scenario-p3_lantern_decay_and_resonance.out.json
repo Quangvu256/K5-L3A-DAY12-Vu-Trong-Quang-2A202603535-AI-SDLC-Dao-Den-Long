@@ -1,0 +1,96 @@
+{
+  "contractVersion": "2.0.0",
+  "phase": 3,
+  "scenarioId": "p3_lantern_decay_and_resonance",
+  "levelId": "level-1",
+  "seed": 42,
+  "status": "running",
+  "ticksElapsed": 150,
+  "simTimeSec": 7.5,
+  "player": {
+    "x": 0,
+    "z": -8.4,
+    "lanternOil": 100,
+    "carriedFireflies": 0,
+    "flaresUsed": 0,
+    "flareCooldownTicks": 0
+  },
+  "lanternsLit": 2,
+  "lanternsTotal": 3,
+  "resonanceActive": true,
+  "lanterns": [
+    {
+      "id": "L1",
+      "lit": true,
+      "charge": 80.6
+    },
+    {
+      "id": "L2",
+      "lit": true,
+      "charge": 100
+    },
+    {
+      "id": "L3",
+      "lit": false,
+      "charge": 0
+    }
+  ],
+  "firefliesCollected": 4,
+  "firefliesTotal": 6,
+  "shadows": [
+    {
+      "id": "S1",
+      "x": 0,
+      "z": 10.25,
+      "aiState": "patrol"
+    },
+    {
+      "id": "S2",
+      "x": 12.939344,
+      "z": 7.060656,
+      "aiState": "patrol"
+    }
+  ],
+  "events": [
+    {
+      "tick": 6,
+      "type": "firefly_collected",
+      "entityId": "F1"
+    },
+    {
+      "tick": 16,
+      "type": "firefly_collected",
+      "entityId": "F2"
+    },
+    {
+      "tick": 29,
+      "type": "lantern_lit",
+      "entityId": "L1"
+    },
+    {
+      "tick": 29,
+      "type": "lantern_dimming",
+      "entityId": "L1"
+    },
+    {
+      "tick": 99,
+      "type": "firefly_collected",
+      "entityId": "F3"
+    },
+    {
+      "tick": 109,
+      "type": "firefly_collected",
+      "entityId": "F4"
+    },
+    {
+      "tick": 122,
+      "type": "lantern_lit",
+      "entityId": "L2"
+    },
+    {
+      "tick": 122,
+      "type": "resonance_activated"
+    }
+  ],
+  "digestSha256": "723b14d02a427d75e0d5d69dec7dab2aab684e6c87854cd891cf055787df723d"
+}

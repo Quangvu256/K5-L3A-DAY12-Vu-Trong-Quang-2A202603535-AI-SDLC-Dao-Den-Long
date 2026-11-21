@@ -1,0 +1,115 @@
+{
+  "contractVersion": "2.0.0",
+  "phase": 3,
+  "scenarioId": "p1_collect_and_win",
+  "levelId": "level-1",
+  "seed": 42,
+  "status": "won",
+  "ticksElapsed": 143,
+  "simTimeSec": 7.15,
+  "player": {
+    "x": -8.4,
+    "z": 0,
+    "lanternOil": 97,
+    "carriedFireflies": 0,
+    "flaresUsed": 0,
+    "flareCooldownTicks": 0
+  },
+  "lanternsLit": 3,
+  "lanternsTotal": 3,
+  "resonanceActive": true,
+  "lanterns": [
+    {
+      "id": "L1",
+      "lit": true,
+      "charge": 92.4
+    },
+    {
+      "id": "L2",
+      "lit": true,
+      "charge": 100
+    },
+    {
+      "id": "L3",
+      "lit": true,
+      "charge": 100
+    }
+  ],
+  "firefliesCollected": 6,
+  "firefliesTotal": 6,
+  "shadows": [
+    {
+      "id": "S1",
+      "x": 0,
+      "z": 11.125,
+      "aiState": "patrol"
+    },
+    {
+      "id": "S2",
+      "x": 13.55806,
+      "z": 6.44194,
+      "aiState": "patrol"
+    }
+  ],
+  "events": [
+    {
+      "tick": 6,
+      "type": "firefly_collected",
+      "entityId": "F1"
+    },
+    {
+      "tick": 16,
+      "type": "firefly_collected",
+      "entityId": "F2"
+    },
+    {
+      "tick": 29,
+      "type": "lantern_lit",
+      "entityId": "L1"
+    },
+    {
+      "tick": 29,
+      "type": "lantern_dimming",
+      "entityId": "L1"
+    },
+    {
+      "tick": 63,
+      "type": "firefly_collected",
+      "entityId": "F3"
+    },
+    {
+      "tick": 73,
+      "type": "firefly_collected",
+      "entityId": "F4"
+    },
+    {
+      "tick": 86,
+      "type": "lantern_lit",
+      "entityId": "L2"
+    },
+    {
+      "tick": 86,
+      "type": "resonance_activated"
+    },
+    {
+      "tick": 120,
+      "type": "firefly_collected",
+      "entityId": "F5"
+    },
+    {
+      "tick": 130,
+      "type": "firefly_collected",
+      "entityId": "F6"
+    },
+    {
+      "tick": 143,
+      "type": "lantern_lit",
+      "entityId": "L3"
+    },
+    {
+      "tick": 143,
+      "type": "game_won"
+    }
+  ],
+  "digestSha256": "2b2db884ea07e251bf2b8b814413332ab1394dd81274d75efe60c6548e6965e8"
+}

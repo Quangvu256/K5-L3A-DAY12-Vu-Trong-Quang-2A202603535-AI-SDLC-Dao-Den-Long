@@ -9,6 +9,6 @@
   ],
   "expected": {
     "status": "lost",
-    "playerHp": 0
+    "lanternOil": 0
   }
 }

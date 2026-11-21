@@ -1,0 +1,43 @@
+
+> dao-den-long@0.1.0 verify
+> node scripts/verify-all.mjs
+
+=== [1/6] Core Purity Guard ===
+[Core Purity Guard] OK (5 files in src/core/ verified pure & deterministic).
+
+=== [2/6] No-Skipped-Tests Guard ===
+[No-Skipped-Tests Guard] OK (2 test files checked, 0 skipped tests).
+
+=== [3/6] TypeScript Typecheck ===
+
+> dao-den-long@0.1.0 typecheck
+> tsc --noEmit
+
+
+=== [4/6] Unit & Contract Tests (Vitest) ===
+
+> dao-den-long@0.1.0 test
+> vitest run
+
+
+[1m[46m RUN [49m[22m [36mv3.2.7 [39m[90mD:/VinUni/K5-L3A-DAY12-Vu-Trong-Quang-2A202603535-AI-SDLC-Dao-Den-Long[39m
+
+ [32m✓[39m tests/contract.test.ts [2m([22m[2m7 tests[22m[2m)[22m[32m 40[2mms[22m[39m
+ [32m✓[39m tests/core.test.ts [2m([22m[2m12 tests[22m[2m)[22m[32m 49[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m2 passed[39m[22m[90m (2)[39m
+[2m      Tests [22m [1m[32m19 passed[39m[22m[90m (19)[39m
+[2m   Start at [22m 12:01:59
+[2m   Duration [22m 971ms[2m (transform 186ms, setup 0ms, collect 453ms, tests 89ms, environment 1ms, prepare 398ms)[22m
+
+
+=== [5/6] Headless Scenario Execution & Determinism Double-Check ===
+[OK] p1_boundary_and_obstacle.json -> level=level-1, status=running, ticks=160, lanterns=0/3, resonance=false, oil=85.6, digest=7219c7e40edc...
+[OK] p1_collect_and_win.json -> level=level-1, status=won, ticks=143, lanterns=3/3, resonance=true, oil=97, digest=2b2db884ea07...
+[OK] p1_shadow_collision_loss.json -> level=level-1, status=lost, ticks=62, lanterns=0/3, resonance=false, oil=0, digest=1ac6f6fea9ab...
+[OK] p2_flare_repel_shadow.json -> level=level-1, status=running, ticks=60, lanterns=0/3, resonance=false, oil=94.6, digest=f678ebd5d90a...
+[OK] p2_level2_win.json -> level=level-2, status=won, ticks=270, lanterns=4/4, resonance=true, oil=95.2, digest=8c20e5a84e24...
+[OK] p3_lantern_decay_and_resonance.json -> level=level-1, status=running, ticks=150, lanterns=2/3, resonance=true, oil=100, digest=723b14d02a42...
+[OK] p3_mist_oil_drain_sanctuary.json -> level=level-1, status=running, ticks=100, lanterns=1/3, resonance=false, oil=100, digest=846933677aec...
+
+=== [6/6] Verification Gate PASSED ===

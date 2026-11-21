@@ -22,6 +22,7 @@ export interface GreatLantern {
   x: number;
   z: number;
   lit: boolean;
+  charge: number;
 }
 
 export type ShadowAiState = 'patrol' | 'alert' | 'chase' | 'repelled';
@@ -42,7 +43,7 @@ export interface PlayerState {
   z: number;
   facingX: number;
   facingZ: number;
-  hp: number;
+  lanternOil: number;
   invulnTicks: number;
   carriedFireflies: number;
   flareCooldownTicks: number;
@@ -72,6 +73,10 @@ export interface SimEvent {
   type:
     | 'firefly_collected'
     | 'lantern_lit'
+    | 'lantern_dimming'
+    | 'lantern_extinguished'
+    | 'lantern_rekindled'
+    | 'resonance_activated'
     | 'shadow_hit'
     | 'flare_cast'
     | 'shadow_repelled'
@@ -91,6 +96,7 @@ export interface GameState {
   islandRadius: number;
   status: GameStatus;
   lastFlareTick: number;
+  resonanceActive: boolean;
   player: PlayerState;
   obstacles: Obstacle[];
   fireflies: Firefly[];
@@ -118,7 +124,8 @@ export interface ScenarioFile {
     status?: GameStatus;
     lanternsLit?: number;
     firefliesCollected?: number;
-    playerHp?: number;
+    lanternOil?: number;
     flaresUsed?: number;
+    resonanceActive?: boolean;
   };
 }

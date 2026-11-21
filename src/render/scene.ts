@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { FLARE_RADIUS, LANTERN_SAFE_RADIUS } from '../core/constants';
+import { FLARE_RADIUS, LANTERN_CHARGE_MAX, LANTERN_SAFE_RADIUS } from '../core/constants';
 import { GameState } from '../core/types';
 
 interface LanternVisual {
@@ -28,6 +28,8 @@ export class IslandScene3D {
   private playerCloakMat!: THREE.MeshStandardMaterial;
   private flareWaveMesh!: THREE.Mesh;
   private flareWaveMat!: THREE.MeshBasicMaterial;
+  private resonanceGroup = new THREE.Group();
+  private resonanceLine!: THREE.Line;
   private fireflyMeshes = new Map<string, THREE.Mesh>();
   private lanternVisuals = new Map<string, LanternVisual>();
   private shadowVisuals = new Map<string, ShadowVisual>();
@@ -278,6 +280,15 @@ export class IslandScene3D {
     this.flareWaveMesh.visible = false;
     this.worldGroup.add(this.flareWaveMesh);
 
+    // Resonance Chain glowing line connecting lit lanterns
+    this.resonanceGroup = new THREE.Group();
+    const resGeo = new THREE.BufferGeometry();
+    const resMat = new THREE.LineBasicMaterial({ color: 0xffd166, transparent: true, opacity: 0.85 });
+    this.resonanceLine = new THREE.Line(resGeo, resMat);
+    this.resonanceGroup.add(this.resonanceLine);
+    this.resonanceGroup.visible = false;
+    this.worldGroup.add(this.resonanceGroup);
+
     // Mây (Player)
     this.playerGroup = new THREE.Group();
     this.playerCloakMat = new THREE.MeshStandardMaterial({ color: 0x2d6a8e, roughness: 0.7 });
@@ -353,16 +364,19 @@ export class IslandScene3D {
       }
     }
 
-    // Sync Great Lanterns
+    // Sync Great Lanterns & Charge scaling
+    const litPoints: THREE.Vector3[] = [];
     for (const l of state.lanterns) {
       const vis = this.lanternVisuals.get(l.id);
       if (!vis) continue;
       if (l.lit) {
+        const chargeRatio = Math.max(0.2, l.charge / LANTERN_CHARGE_MAX);
         vis.coreMat.color.setHex(0xffe082);
-        vis.coreMat.emissiveIntensity = 2.4 + Math.sin(elapsedSec * 4) * 0.25;
-        vis.light.intensity = 4.6;
+        vis.coreMat.emissiveIntensity = (2.4 + Math.sin(elapsedSec * 4) * 0.25) * chargeRatio;
+        vis.light.intensity = 4.6 * chargeRatio;
         vis.beam.visible = true;
         vis.safeRing.visible = true;
+        litPoints.push(new THREE.Vector3(l.x, 2.65, l.z));
       } else {
         vis.coreMat.color.setHex(0x2c3648);
         vis.coreMat.emissiveIntensity = 0;
@@ -370,6 +384,15 @@ export class IslandScene3D {
         vis.beam.visible = false;
         vis.safeRing.visible = false;
       }
+    }
+
+    if (state.resonanceActive && litPoints.length >= 2) {
+      const loopPoints = [...litPoints, litPoints[0]];
+      this.resonanceLine.geometry.dispose();
+      this.resonanceLine.geometry = new THREE.BufferGeometry().setFromPoints(loopPoints);
+      this.resonanceGroup.visible = true;
+    } else {
+      this.resonanceGroup.visible = false;
     }
 
     // Sync Ink Shadows & AI states

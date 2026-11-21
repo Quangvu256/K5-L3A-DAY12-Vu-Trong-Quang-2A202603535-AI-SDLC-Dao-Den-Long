@@ -40,3 +40,21 @@
 ### 4. Ước tính Token & Tiết kiệm (`[ESTIMATE]`)
 - **Ước tính Phase 2 (`[ESTIMATE]`):** ~24k input tokens / ~7.5k output tokens (~$0.12–$0.20).
 - **Cách tiết kiệm:** Đọc đúng vùng 140 dòng liên quan trong `src/core/engine.ts` khi fix bug `stunTicks` thay vì đọc toàn bộ codebase; mở rộng `test-contract.json` tương thích ngược để không phải viết lại bộ scenario Phase 1.
+
+---
+
+## Phase 3 — Ticket-03 (Breaking Rule Replacement: Oil, Decay & Resonance Chain)
+
+### 1. Đánh giá kết quả Phase 3
+- **Đạt:** Thực thi thay thế luật phá vỡ tương thích ngược (`player.hp -> player.lanternOil`, `charge` suy giảm + Resonance Chain) kèm ADR tường minh tại [phase-3-change-log.md](phase-3-change-log.md). Toàn bộ 17 tests và 7 scenarios headless (gồm `p3_lantern_decay_and_resonance` và `p3_mist_oil_drain_sanctuary`) đều xanh và tất định 100%.
+
+### 2. Lỗi AI / Rủi ro phát hiện & Cách xử lý
+1. **Nguy cơ tắt âm thầm test cũ:** Khi đổi `player.hp -> player.lanternOil`, một cách làm ẩu là thêm `.skip` vào test Phase 1/2. Để ngăn điều này vĩnh viễn, đã bổ sung `scripts/check-no-skipped-tests.mjs` vào Harness v3 và di trú tường minh kèm lý do ADR.
+
+### 3. Điều chỉnh Harness -> v3
+- Thêm `scripts/check-no-skipped-tests.mjs` vào `verify-all.mjs` và CI.
+- Cập nhật `AGENTS.md` (v3) với mục **Rule-Change & Test-Migration Policy**.
+
+### 4. Ước tính Token & Tiết kiệm (`[ESTIMATE]`)
+- **Ước tính Phase 3 (`[ESTIMATE]`):** ~22k input tokens / ~6.5k output tokens (~$0.11–$0.18).
+- **Cách tiết kiệm:** Chỉ nâng phiên bản `test-contract.json` (`2.0.0`), giữ nguyên đầu vào toàn bộ 5 scenario cũ, và dùng 1 ADR trung tâm thay vì lặp lại giải thích ở nhiều nơi.

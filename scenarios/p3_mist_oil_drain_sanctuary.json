@@ -1,0 +1,17 @@
+{
+  "scenarioId": "p3_mist_oil_drain_sanctuary",
+  "levelId": "level-1",
+  "seed": 42,
+  "maxTicks": 100,
+  "inputs": [
+    { "fromTick": 1, "toTick": 28, "moveX": 1, "moveZ": 0, "interact": false },
+    { "fromTick": 29, "toTick": 78, "moveX": 0, "moveZ": 0, "interact": false },
+    { "fromTick": 79, "toTick": 79, "moveX": 0, "moveZ": 0, "interact": true },
+    { "fromTick": 80, "toTick": 100, "moveX": 0, "moveZ": 0, "interact": false }
+  ],
+  "expected": {
+    "status": "running",
+    "lanternsLit": 1,
+    "lanternOil": 100
+  }
+}
