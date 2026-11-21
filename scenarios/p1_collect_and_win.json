@@ -1,0 +1,21 @@
+{
+  "scenarioId": "p1_collect_and_win",
+  "levelId": "level-1",
+  "seed": 42,
+  "maxTicks": 160,
+  "inputs": [
+    { "fromTick": 1, "toTick": 28, "moveX": 1, "moveZ": 0, "interact": false },
+    { "fromTick": 29, "toTick": 29, "moveX": 0, "moveZ": 0, "interact": true },
+    { "fromTick": 30, "toTick": 57, "moveX": -1, "moveZ": 0, "interact": false },
+    { "fromTick": 58, "toTick": 85, "moveX": 0, "moveZ": -1, "interact": false },
+    { "fromTick": 86, "toTick": 86, "moveX": 0, "moveZ": 0, "interact": true },
+    { "fromTick": 87, "toTick": 114, "moveX": 0, "moveZ": 1, "interact": false },
+    { "fromTick": 115, "toTick": 142, "moveX": -1, "moveZ": 0, "interact": false },
+    { "fromTick": 143, "toTick": 143, "moveX": 0, "moveZ": 0, "interact": true }
+  ],
+  "expected": {
+    "status": "won",
+    "lanternsLit": 3,
+    "firefliesCollected": 6
+  }
+}

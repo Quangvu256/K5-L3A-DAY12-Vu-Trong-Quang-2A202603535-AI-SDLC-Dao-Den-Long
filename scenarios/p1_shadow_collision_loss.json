@@ -1,0 +1,14 @@
+{
+  "scenarioId": "p1_shadow_collision_loss",
+  "levelId": "level-1",
+  "seed": 42,
+  "maxTicks": 180,
+  "inputs": [
+    { "fromTick": 1, "toTick": 38, "moveX": 0, "moveZ": 1, "interact": false },
+    { "fromTick": 39, "toTick": 180, "moveX": 0, "moveZ": 0, "interact": false }
+  ],
+  "expected": {
+    "status": "lost",
+    "playerHp": 0
+  }
+}

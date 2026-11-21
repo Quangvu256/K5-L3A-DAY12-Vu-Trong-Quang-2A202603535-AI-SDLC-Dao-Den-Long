@@ -1,0 +1,14 @@
+{
+  "scenarioId": "p1_boundary_and_obstacle",
+  "levelId": "level-1",
+  "seed": 42,
+  "maxTicks": 160,
+  "inputs": [
+    { "fromTick": 1, "toTick": 60, "moveX": -1, "moveZ": -1, "interact": false },
+    { "fromTick": 61, "toTick": 160, "moveX": -1, "moveZ": 0, "interact": false }
+  ],
+  "expected": {
+    "status": "running",
+    "lanternsLit": 0
+  }
+}
