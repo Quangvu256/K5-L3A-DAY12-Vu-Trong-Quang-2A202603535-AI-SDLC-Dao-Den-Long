@@ -17,5 +17,6 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      - run: node scripts/check-core-purity.mjs
       - run: npm run verify
       - run: npm run build

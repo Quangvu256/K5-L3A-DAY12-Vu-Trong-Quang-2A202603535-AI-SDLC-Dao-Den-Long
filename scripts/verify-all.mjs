@@ -13,13 +13,16 @@ function runBin(bin, args, capture = false) {
   return execFileSync(bin, args, opts);
 }
 
-console.log('=== [1/4] TypeScript Typecheck ===');
+console.log('=== [1/5] Core Purity Guard ===');
+runBin('node', ['scripts/check-core-purity.mjs']);
+
+console.log('\n=== [2/5] TypeScript Typecheck ===');
 runBin('npm', ['run', 'typecheck']);
 
-console.log('\n=== [2/4] Unit & Contract Tests (Vitest) ===');
+console.log('\n=== [3/5] Unit & Contract Tests (Vitest) ===');
 runBin('npm', ['test']);
 
-console.log('\n=== [3/4] Headless Scenario Execution & Determinism Double-Check ===');
+console.log('\n=== [4/5] Headless Scenario Execution & Determinism Double-Check ===');
 const scenariosDir = resolve('scenarios');
 const scenarioFiles = readdirSync(scenariosDir)
   .filter((f) => f.endsWith('.json'))
@@ -40,8 +43,8 @@ for (const file of scenarioFiles) {
 
   const parsed = JSON.parse(out1);
   console.log(
-    `[OK] ${file} -> status=${parsed.status}, ticks=${parsed.ticksElapsed}, lanterns=${parsed.lanternsLit}/${parsed.lanternsTotal}, digest=${parsed.digestSha256.slice(0, 12)}...`
+    `[OK] ${file} -> level=${parsed.levelId}, status=${parsed.status}, ticks=${parsed.ticksElapsed}, lanterns=${parsed.lanternsLit}/${parsed.lanternsTotal}, digest=${parsed.digestSha256.slice(0, 12)}...`
   );
 }
 
-console.log('\n=== [4/4] Verification Gate PASSED ===');
+console.log('\n=== [5/5] Verification Gate PASSED ===');
