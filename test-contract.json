@@ -1,0 +1,59 @@
+{
+  "contractVersion": "1.0.0",
+  "phase": 1,
+  "assumptionNote": "Schema derived as explicit [ASSUMPTION] for headless grading compatibility; adapter lives in src/headless/contract.ts.",
+  "entrypoint": "npm run headless -- --scenario <path> [--out <path>]",
+  "determinism": true,
+  "constants": {
+    "dt": 0.05,
+    "tickRateHz": 20,
+    "islandRadius": 24,
+    "playerSpeed": 6.0,
+    "playerRadius": 0.6,
+    "fireflyPickupRadius": 1.3,
+    "lanternInteractRadius": 2.4,
+    "firefliesPerLantern": 2,
+    "lanternSafeRadius": 5.5,
+    "playerMaxHp": 3,
+    "shadowContactRadius": 1.2,
+    "shadowInvulnTicks": 20,
+    "shadowSpeed": 2.5
+  },
+  "inputSchema": {
+    "scenarioId": "string",
+    "levelId": "string (default: level-1)",
+    "seed": "integer",
+    "maxTicks": "integer > 0",
+    "inputs": [
+      {
+        "fromTick": "integer >= 1",
+        "toTick": "integer >= fromTick",
+        "moveX": "number [-1..1]",
+        "moveZ": "number [-1..1]",
+        "interact": "boolean"
+      }
+    ]
+  },
+  "outputSchema": {
+    "contractVersion": "string",
+    "phase": "integer",
+    "scenarioId": "string",
+    "levelId": "string",
+    "seed": "integer",
+    "status": "running | won | lost",
+    "ticksElapsed": "integer",
+    "simTimeSec": "number",
+    "player": {
+      "x": "number",
+      "z": "number",
+      "hp": "integer",
+      "carriedFireflies": "integer"
+    },
+    "lanternsLit": "integer",
+    "lanternsTotal": "integer",
+    "firefliesCollected": "integer",
+    "firefliesTotal": "integer",
+    "events": "SimEvent[]",
+    "digestSha256": "64-char hex SHA-256 over canonical payload excluding digestSha256"
+  }
+}
