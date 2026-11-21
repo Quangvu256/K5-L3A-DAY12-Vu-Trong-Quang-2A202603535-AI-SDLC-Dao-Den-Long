@@ -15,3 +15,13 @@ All notable changes to **Đảo Đèn Lồng** are documented per SDLC phase.
 - Headless Test Contract v1.0.0 CLI (`src/headless/cli.ts`, `test-contract.json`) with canonical SHA-256 digest.
 - Three.js 3D playable island scene, Mây character, HUD, and fixed-timestep game loop (`src/render/`, `src/main.ts`).
 - 3 Phase 1 headless scenarios, 9 unit/contract tests, verification script (`scripts/verify-all.mjs`), and real proof artifacts (`docs/proof/phase-1/`).
+
+## [0.2.0] - 2026-11-21 (Phase 2 — Tag `phase-2`)
+### Added
+- Light Flare (`Space` / `input.flare`) spending 1 firefly with 80-tick cooldown, 7.0 radius knockback, and 60-tick stun.
+- Ink Shadow 4-state AI (`patrol -> alert -> chase -> repelled`) respecting lit lantern sanctuaries.
+- Level 2 ("Bến Sương Mù", `islandRadius = 28`, 4 lanterns, 8 fireflies, 3 shadows, 4 rocks).
+- AI Harness v2: static `scripts/check-core-purity.mjs`, `.agents/skills/review-diff/SKILL.md`, updated `AGENTS.md`, and CI gate.
+- Phase 2 scenarios (`p2_flare_repel_shadow.json`, `p2_level2_win.json`), 14 passing tests, and real proof artifacts (`docs/proof/phase-2/`).
+### Fixed
+- Aligned `stunTicks` decrement timing with `invulnTicks`/`flareCooldownTicks` at tick start so stun lasts full 60 ticks after cast.

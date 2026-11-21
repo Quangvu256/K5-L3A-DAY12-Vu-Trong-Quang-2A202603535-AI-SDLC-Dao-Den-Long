@@ -1,0 +1,38 @@
+
+> dao-den-long@0.1.0 verify
+> node scripts/verify-all.mjs
+
+=== [1/5] Core Purity Guard ===
+[Core Purity Guard] OK (5 files in src/core/ verified pure & deterministic).
+
+=== [2/5] TypeScript Typecheck ===
+
+> dao-den-long@0.1.0 typecheck
+> tsc --noEmit
+
+
+=== [3/5] Unit & Contract Tests (Vitest) ===
+
+> dao-den-long@0.1.0 test
+> vitest run
+
+
+[1m[46m RUN [49m[22m [36mv3.2.7 [39m[90mD:/VinUni/K5-L3A-DAY12-Vu-Trong-Quang-2A202603535-AI-SDLC-Dao-Den-Long[39m
+
+ [32m✓[39m tests/contract.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 39[2mms[22m[39m
+ [32m✓[39m tests/core.test.ts [2m([22m[2m9 tests[22m[2m)[22m[32m 42[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m2 passed[39m[22m[90m (2)[39m
+[2m      Tests [22m [1m[32m14 passed[39m[22m[90m (14)[39m
+[2m   Start at [22m 11:51:12
+[2m   Duration [22m 1.15s[2m (transform 183ms, setup 0ms, collect 257ms, tests 81ms, environment 1ms, prepare 675ms)[22m
+
+
+=== [4/5] Headless Scenario Execution & Determinism Double-Check ===
+[OK] p1_boundary_and_obstacle.json -> level=level-1, status=running, ticks=160, lanterns=0/3, digest=64894a00f481...
+[OK] p1_collect_and_win.json -> level=level-1, status=won, ticks=143, lanterns=3/3, digest=c7634782be90...
+[OK] p1_shadow_collision_loss.json -> level=level-1, status=lost, ticks=62, lanterns=0/3, digest=f6b37d4537f1...
+[OK] p2_flare_repel_shadow.json -> level=level-1, status=running, ticks=60, lanterns=0/3, digest=a2bb47a9eaea...
+[OK] p2_level2_win.json -> level=level-2, status=won, ticks=270, lanterns=4/4, digest=eb4129613810...
+
+=== [5/5] Verification Gate PASSED ===

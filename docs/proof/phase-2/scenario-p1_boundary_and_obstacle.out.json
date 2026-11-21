@@ -1,0 +1,38 @@
+{
+  "contractVersion": "1.1.0",
+  "phase": 2,
+  "scenarioId": "p1_boundary_and_obstacle",
+  "levelId": "level-1",
+  "seed": 42,
+  "status": "running",
+  "ticksElapsed": 160,
+  "simTimeSec": 8,
+  "player": {
+    "x": -23.176553,
+    "z": -3.226046,
+    "hp": 3,
+    "carriedFireflies": 0,
+    "flaresUsed": 0,
+    "flareCooldownTicks": 0
+  },
+  "lanternsLit": 0,
+  "lanternsTotal": 3,
+  "firefliesCollected": 0,
+  "firefliesTotal": 6,
+  "shadows": [
+    {
+      "id": "S1",
+      "x": 0,
+      "z": 9,
+      "aiState": "patrol"
+    },
+    {
+      "id": "S2",
+      "x": 12.055464,
+      "z": 7.944536,
+      "aiState": "patrol"
+    }
+  ],
+  "events": [],
+  "digestSha256": "64894a00f48151c5b9a9f7d6d8468813e50e570dcf9572acc52e9236e6416c95"
+}

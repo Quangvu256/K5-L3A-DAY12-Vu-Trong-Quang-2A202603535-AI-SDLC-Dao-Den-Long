@@ -1,0 +1,53 @@
+{
+  "contractVersion": "1.1.0",
+  "phase": 2,
+  "scenarioId": "p2_flare_repel_shadow",
+  "levelId": "level-1",
+  "seed": 42,
+  "status": "running",
+  "ticksElapsed": 60,
+  "simTimeSec": 3,
+  "player": {
+    "x": 0,
+    "z": 6,
+    "hp": 3,
+    "carriedFireflies": 0,
+    "flaresUsed": 1,
+    "flareCooldownTicks": 76
+  },
+  "lanternsLit": 0,
+  "lanternsTotal": 3,
+  "firefliesCollected": 1,
+  "firefliesTotal": 6,
+  "shadows": [
+    {
+      "id": "S1",
+      "x": 0,
+      "z": 15.675,
+      "aiState": "repelled"
+    },
+    {
+      "id": "S2",
+      "x": 12.762568,
+      "z": 7.237432,
+      "aiState": "patrol"
+    }
+  ],
+  "events": [
+    {
+      "tick": 6,
+      "type": "firefly_collected",
+      "entityId": "F1"
+    },
+    {
+      "tick": 56,
+      "type": "flare_cast"
+    },
+    {
+      "tick": 56,
+      "type": "shadow_repelled",
+      "entityId": "S1"
+    }
+  ],
+  "digestSha256": "a2bb47a9eaea8f4c5288630f579dd21dc84f1072c1c91010b39c1f20c00e6059"
+}

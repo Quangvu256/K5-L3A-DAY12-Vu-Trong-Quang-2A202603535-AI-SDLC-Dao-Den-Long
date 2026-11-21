@@ -1,0 +1,24 @@
+{
+  "scenarioId": "p2_level2_win",
+  "levelId": "level-2",
+  "seed": 42,
+  "maxTicks": 280,
+  "inputs": [
+    { "fromTick": 1, "toTick": 38, "moveX": 1, "moveZ": 0, "interact": false },
+    { "fromTick": 39, "toTick": 39, "moveX": 0, "moveZ": 0, "interact": true },
+    { "fromTick": 40, "toTick": 77, "moveX": -1, "moveZ": 0, "interact": false },
+    { "fromTick": 78, "toTick": 115, "moveX": 0, "moveZ": -1, "interact": false },
+    { "fromTick": 116, "toTick": 116, "moveX": 0, "moveZ": 0, "interact": true },
+    { "fromTick": 117, "toTick": 154, "moveX": 0, "moveZ": 1, "interact": false },
+    { "fromTick": 155, "toTick": 192, "moveX": -1, "moveZ": 0, "interact": false },
+    { "fromTick": 193, "toTick": 193, "moveX": 0, "moveZ": 0, "interact": true },
+    { "fromTick": 194, "toTick": 231, "moveX": 1, "moveZ": 0, "interact": false },
+    { "fromTick": 232, "toTick": 269, "moveX": 0, "moveZ": 1, "interact": false },
+    { "fromTick": 270, "toTick": 270, "moveX": 0, "moveZ": 0, "interact": true }
+  ],
+  "expected": {
+    "status": "won",
+    "lanternsLit": 4,
+    "firefliesCollected": 8
+  }
+}

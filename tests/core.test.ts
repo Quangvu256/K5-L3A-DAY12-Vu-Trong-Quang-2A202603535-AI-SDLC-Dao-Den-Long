@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest';
 import {
   DT,
   FIREFLIES_PER_LANTERN,
+  FLARE_COOLDOWN_TICKS,
+  FLARE_STUN_TICKS,
   ISLAND_RADIUS,
   LANTERN_SAFE_RADIUS,
   PLAYER_MAX_HP,
@@ -54,12 +56,9 @@ describe('Phase 1 Core Simulation', () => {
 
   it('collects fireflies automatically and requires >= FIREFLIES_PER_LANTERN to light a lantern', () => {
     let state = createInitialState('level-1', 42);
-    // Walk East to pick up F1 (3,0) only, then go to L1 (9,0) without F2? Wait: F2 is on the line at (6,0).
-    // Test failing to light when carrying 0 fireflies by walking North-East around F1/F2.
     for (let i = 0; i < 30; i += 1) {
       state = stepSimulation(state, { moveX: 0, moveZ: 1, interact: false });
     }
-    // Walk to (9,0) via z=4 (avoiding F1/F2 at z=0)
     for (let i = 0; i < 30; i += 1) {
       state = stepSimulation(state, { moveX: 1, moveZ: 0, interact: false });
     }
@@ -70,7 +69,6 @@ describe('Phase 1 Core Simulation', () => {
     expect(state.player.carriedFireflies).toBe(0);
     expect(state.lanterns[0].lit).toBe(false);
 
-    // Fresh state: walk directly East collecting F1 & F2 then interact at L1
     let winPath = createInitialState('level-1', 42);
     for (let i = 0; i < 28; i += 1) {
       winPath = stepSimulation(winPath, { moveX: 1, moveZ: 0, interact: false });
@@ -83,14 +81,12 @@ describe('Phase 1 Core Simulation', () => {
 
   it('keeps Ink Shadows patrolling and outside lit lantern sanctuaries', () => {
     let state = createInitialState('level-1', 42);
-    // Light L1 manually via normal gameplay first
     for (let i = 0; i < 28; i += 1) {
       state = stepSimulation(state, { moveX: 1, moveZ: 0, interact: false });
     }
     state = stepSimulation(state, { moveX: 0, moveZ: 0, interact: true });
     expect(state.lanterns[0].lit).toBe(true);
 
-    // Step 120 ticks and verify every shadow stays outside lit L1 safe radius
     for (let i = 0; i < 120; i += 1) {
       state = stepSimulation(state, { moveX: 0, moveZ: 0, interact: false });
       for (const s of state.shadows) {
@@ -119,5 +115,99 @@ describe('Phase 1 Core Simulation', () => {
     expect(sawInvuln).toBe(true);
     expect(state.player.hp).toBe(0);
     expect(state.status).toBe('lost');
+  });
+});
+
+describe('Phase 2 Core Features: Light Flare, Shadow AI & Level 2', () => {
+  it('transitions shadow AI patrol -> alert -> chase -> patrol when entering sanctuary', () => {
+    let state = createInitialState('level-1', 42);
+    // Light L1 first so a sanctuary exists at (9,0)
+    for (let i = 0; i < 28; i += 1) {
+      state = stepSimulation(state, { moveX: 1, moveZ: 0, interact: false });
+    }
+    state = stepSimulation(state, { moveX: 0, moveZ: 0, interact: true });
+    expect(state.lanterns[0].lit).toBe(true);
+
+    // Walk back to (0,0), then South toward S1
+    for (let i = 0; i < 28; i += 1) {
+      state = stepSimulation(state, { moveX: -1, moveZ: 0, interact: false });
+    }
+    const observedStates = new Set<string>();
+    for (let i = 0; i < 40; i += 1) {
+      state = stepSimulation(state, { moveX: 0, moveZ: 1, interact: false });
+      observedStates.add(state.shadows[0].aiState);
+      if (state.shadows[0].aiState === 'chase') break;
+    }
+
+    expect(observedStates.has('patrol')).toBe(true);
+    expect(observedStates.has('alert')).toBe(true);
+    expect(observedStates.has('chase')).toBe(true);
+
+    // Run North-East into L1 sanctuary (9,0) -> shadow must return to patrol
+    for (let i = 0; i < 50; i += 1) {
+      const dx = 9 - state.player.x;
+      const dz = 0 - state.player.z;
+      state = stepSimulation(state, { moveX: dx, moveZ: dz, interact: false });
+      if (Math.hypot(dx, dz) <= 1.0) break;
+    }
+    expect(state.shadows[0].aiState).toBe('patrol');
+  });
+
+  it('requires firefly & respects cooldown for Light Flare, repels shadows, and prevents stunned contact damage', () => {
+    let state = createInitialState('level-1', 42);
+    // Attempt flare with 0 fireflies -> does nothing
+    state = stepSimulation(state, { moveX: 0, moveZ: 0, interact: false, flare: true });
+    expect(state.player.flaresUsed).toBe(0);
+    expect(state.player.flareCooldownTicks).toBe(0);
+
+    // Collect F1 & F2 (2 fireflies), go South to S1, cast flare
+    for (let i = 0; i < 20; i += 1) {
+      state = stepSimulation(state, { moveX: 1, moveZ: 0, interact: false });
+    }
+    for (let i = 0; i < 20; i += 1) {
+      state = stepSimulation(state, { moveX: -1, moveZ: 0, interact: false });
+    }
+    for (let i = 0; i < 20; i += 1) {
+      state = stepSimulation(state, { moveX: 0, moveZ: 1, interact: false });
+    }
+    for (let i = 0; i < 20; i += 1) {
+      state = stepSimulation(state, { moveX: 0, moveZ: 0, interact: false });
+      if (Math.hypot(state.shadows[0].x - state.player.x, state.shadows[0].z - state.player.z) <= 6.5) {
+        break;
+      }
+    }
+
+    const hpBefore = state.player.hp;
+    const distBefore = Math.hypot(state.shadows[0].x - state.player.x, state.shadows[0].z - state.player.z);
+    state = stepSimulation(state, { moveX: 0, moveZ: 0, interact: false, flare: true });
+
+    expect(state.player.flaresUsed).toBe(1);
+    expect(state.player.carriedFireflies).toBe(1);
+    expect(state.player.flareCooldownTicks).toBe(FLARE_COOLDOWN_TICKS);
+    expect(state.shadows[0].aiState).toBe('repelled');
+    expect(state.shadows[0].stunTicks).toBe(FLARE_STUN_TICKS);
+    const distAfter = Math.hypot(state.shadows[0].x - state.player.x, state.shadows[0].z - state.player.z);
+    expect(distAfter).toBeGreaterThan(distBefore);
+
+    // Immediate second flare attempt during cooldown must be rejected
+    state = stepSimulation(state, { moveX: 0, moveZ: 0, interact: false, flare: true });
+    expect(state.player.flaresUsed).toBe(1);
+
+    // Walk directly on top of repelled shadow -> zero damage while stunned
+    for (let i = 0; i < 15; i += 1) {
+      const dx = state.shadows[0].x - state.player.x;
+      const dz = state.shadows[0].z - state.player.z;
+      state = stepSimulation(state, { moveX: dx, moveZ: dz, interact: false });
+    }
+    expect(state.player.hp).toBe(hpBefore);
+  });
+
+  it('initializes Level 2 with 4 lanterns, 8 fireflies, 3 shadows, and radius 28', () => {
+    const l2 = createInitialState('level-2', 7);
+    expect(l2.islandRadius).toBe(28);
+    expect(l2.lanterns).toHaveLength(4);
+    expect(l2.fireflies).toHaveLength(8);
+    expect(l2.shadows).toHaveLength(3);
+    expect(l2.obstacles).toHaveLength(4);
   });
 });

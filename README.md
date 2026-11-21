@@ -1,6 +1,6 @@
 # Day 12 — AI SDLC: Đảo Đèn Lồng
 
-> **Trạng thái:** Phase 1 hoàn thành bản chơi được Level 1 ("Bến Bắc") + chế độ Headless Test Contract v1.0.0.
+> **Trạng thái:** Phase 2 hoàn thành Quầng Sáng (`Space`), AI Bóng Mực (`patrol/alert/chase/repelled`), Màn 2 ("Bến Sương Mù") & Test Contract v1.1.0.
 > **Lab board:** [Đảo Đèn Lồng Lab](https://claude.ai/artifact/Q1RYyv1dxjUczzCbd2ZnoW) · Tài liệu gốc: [GUIDE.md](GUIDE.md) | [CHECKPOINTS.md](CHECKPOINTS.md) | [SUBMISSION.md](SUBMISSION.md) | [RULES.md](RULES.md) | [RUBRIC.md](RUBRIC.md)
 
 > [!NOTE]
@@ -20,12 +20,14 @@ Mở URL do Vite hiển thị (mặc định `http://localhost:5173`) để chơ
 
 ---
 
-## Điều khiển (Phase 1)
+## Điều khiển (Phase 2)
 
 | Phím | Chức năng |
 |---|---|
 | `WASD` / Phím mũi tên | Di chuyển Mây (chuẩn hóa tốc độ đường chéo) |
 | `E` | Thắp Đèn Lồng Lớn (khi đứng gần `<= 2.4` và có `>= 2` đom đóm) |
+| `Space` | Phóng Quầng Sáng đẩy lùi & làm choáng Bóng Mực (`1` đom đóm, hồi `4s`) |
+| `1` / `2` | Chuyển Màn 1 ("Bến Bắc") / Màn 2 ("Bến Sương Mù") |
 | `P` | Tạm dừng / Tiếp tục |
 | `R` | Chơi lại màn hiện tại |
 
@@ -53,4 +55,5 @@ Mở URL do Vite hiển thị (mặc định `http://localhost:5173`) để chơ
 - Giả định & tiêu chí nghiệm thu: [docs/notes/assumptions.md](docs/notes/assumptions.md)
 - Nhật ký dùng AI & token: [docs/notes/ai-log.md](docs/notes/ai-log.md)
 - Bằng chứng Phase 1: [docs/proof/phase-1/README.md](docs/proof/phase-1/README.md)
-- Harness AI: [AGENTS.md](AGENTS.md), [.agents/skills/verify-phase/SKILL.md](.agents/skills/verify-phase/SKILL.md), [.githooks/pre-commit](.githooks/pre-commit)
+- Bằng chứng Phase 2: [docs/proof/phase-2/README.md](docs/proof/phase-2/README.md)
+- Harness AI: [AGENTS.md](AGENTS.md), [.agents/skills/verify-phase/SKILL.md](.agents/skills/verify-phase/SKILL.md), [.agents/skills/review-diff/SKILL.md](.agents/skills/review-diff/SKILL.md), [.githooks/pre-commit](.githooks/pre-commit)

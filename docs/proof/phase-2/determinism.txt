@@ -1,0 +1,5 @@
+p1_boundary_and_obstacle.json | status=running | ticks=160 | match=true | sha256=64894a00f48151c5b9a9f7d6d8468813e50e570dcf9572acc52e9236e6416c95
+p1_collect_and_win.json | status=won | ticks=143 | match=true | sha256=c7634782be90149b144908f96b6a89473721bd3cfc1179cf13d25a85a356fdca
+p1_shadow_collision_loss.json | status=lost | ticks=62 | match=true | sha256=f6b37d4537f1967f993113128679a3a1573ccf81999bf8c108131be7f1e4302a
+p2_flare_repel_shadow.json | status=running | ticks=60 | match=true | sha256=a2bb47a9eaea8f4c5288630f579dd21dc84f1072c1c91010b39c1f20c00e6059
+p2_level2_win.json | status=won | ticks=270 | match=true | sha256=eb41296138101f81d8e907e958cbfbe012704efd8d884ad7f9f2feded9eb6dbb

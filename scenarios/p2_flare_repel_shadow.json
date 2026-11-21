@@ -1,0 +1,18 @@
+{
+  "scenarioId": "p2_flare_repel_shadow",
+  "levelId": "level-1",
+  "seed": 42,
+  "maxTicks": 60,
+  "inputs": [
+    { "fromTick": 1, "toTick": 10, "moveX": 1, "moveZ": 0, "interact": false, "flare": false },
+    { "fromTick": 11, "toTick": 20, "moveX": -1, "moveZ": 0, "interact": false, "flare": false },
+    { "fromTick": 21, "toTick": 40, "moveX": 0, "moveZ": 1, "interact": false, "flare": false },
+    { "fromTick": 41, "toTick": 55, "moveX": 0, "moveZ": 0, "interact": false, "flare": false },
+    { "fromTick": 56, "toTick": 56, "moveX": 0, "moveZ": 0, "interact": false, "flare": true },
+    { "fromTick": 57, "toTick": 60, "moveX": 0, "moveZ": 0, "interact": false, "flare": false }
+  ],
+  "expected": {
+    "status": "running",
+    "flaresUsed": 1
+  }
+}
