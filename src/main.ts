@@ -9,21 +9,28 @@ if (!app) {
   throw new Error('Missing #app mount container.');
 }
 
-let state: GameState = createInitialState('level-1', 42);
+let currentLevelId = 'level-1';
+let state: GameState = createInitialState(currentLevelId, 42);
 let paused = false;
 let interactQueued = false;
+let flareQueued = false;
 const pressedKeys = new Set<string>();
+
+function resetLevel(levelId = currentLevelId): void {
+  currentLevelId = levelId;
+  state = createInitialState(currentLevelId, 42);
+  paused = false;
+  interactQueued = false;
+  flareQueued = false;
+}
 
 const scene3d = new IslandScene3D(app);
 const hud = new GameHud(app, {
-  onRestart: () => {
-    state = createInitialState('level-1', 42);
-    paused = false;
-    interactQueued = false;
-  },
+  onRestart: () => resetLevel(currentLevelId),
   onTogglePause: () => {
     paused = !paused;
   },
+  onSelectLevel: (levelId) => resetLevel(levelId),
 });
 
 window.addEventListener('keydown', (e) => {
@@ -31,12 +38,17 @@ window.addEventListener('keydown', (e) => {
   pressedKeys.add(code);
   if (code === 'KeyE' && !e.repeat) {
     interactQueued = true;
+  } else if (code === 'Space' && !e.repeat) {
+    e.preventDefault();
+    flareQueued = true;
   } else if (code === 'KeyP' && !e.repeat) {
     paused = !paused;
   } else if (code === 'KeyR' && !e.repeat) {
-    state = createInitialState('level-1', 42);
-    paused = false;
-    interactQueued = false;
+    resetLevel(currentLevelId);
+  } else if (code === 'Digit1' && !e.repeat) {
+    resetLevel('level-1');
+  } else if (code === 'Digit2' && !e.repeat) {
+    resetLevel('level-2');
   }
 });
 
@@ -70,12 +82,15 @@ function animate(nowMs: number): void {
         moveX,
         moveZ,
         interact: interactQueued,
+        flare: flareQueued,
       });
       interactQueued = false;
+      flareQueued = false;
       accumulatorSec -= DT;
     }
   } else {
     interactQueued = false;
+    flareQueued = false;
   }
 
   scene3d.syncAndRender(state, nowMs / 1000);

@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { LANTERN_SAFE_RADIUS } from '../core/constants';
+import { FLARE_RADIUS, LANTERN_SAFE_RADIUS } from '../core/constants';
 import { GameState } from '../core/types';
 
 interface LanternVisual {
@@ -14,6 +14,7 @@ interface ShadowVisual {
   group: THREE.Group;
   bodyMat: THREE.MeshStandardMaterial;
   ring: THREE.Mesh;
+  ringMat: THREE.MeshBasicMaterial;
 }
 
 export class IslandScene3D {
@@ -25,6 +26,8 @@ export class IslandScene3D {
   private playerGroup = new THREE.Group();
   private playerLight!: THREE.PointLight;
   private playerCloakMat!: THREE.MeshStandardMaterial;
+  private flareWaveMesh!: THREE.Mesh;
+  private flareWaveMat!: THREE.MeshBasicMaterial;
   private fireflyMeshes = new Map<string, THREE.Mesh>();
   private lanternVisuals = new Map<string, LanternVisual>();
   private shadowVisuals = new Map<string, ShadowVisual>();
@@ -247,22 +250,33 @@ export class IslandScene3D {
       rightEye.position.set(0.2, 0.15, 0.52);
       group.add(leftEye, rightEye);
 
-      const ring = new THREE.Mesh(
-        new THREE.RingGeometry(0.82, 1.05, 24),
-        new THREE.MeshBasicMaterial({
-          color: 0x7b2cbf,
-          transparent: true,
-          opacity: 0.45,
-          side: THREE.DoubleSide,
-        })
-      );
+      const ringMat = new THREE.MeshBasicMaterial({
+        color: 0x7b2cbf,
+        transparent: true,
+        opacity: 0.45,
+        side: THREE.DoubleSide,
+      });
+      const ring = new THREE.Mesh(new THREE.RingGeometry(0.82, 1.05, 24), ringMat);
       ring.rotation.x = -Math.PI / 2;
       ring.position.y = -0.78;
       group.add(ring);
 
       this.worldGroup.add(group);
-      this.shadowVisuals.set(s.id, { group, bodyMat, ring });
+      this.shadowVisuals.set(s.id, { group, bodyMat, ring, ringMat });
     }
+
+    // Light Flare expanding wave ring
+    this.flareWaveMat = new THREE.MeshBasicMaterial({
+      color: 0xffe066,
+      transparent: true,
+      opacity: 0,
+      side: THREE.DoubleSide,
+    });
+    this.flareWaveMesh = new THREE.Mesh(new THREE.RingGeometry(0.85, 1.0, 48), this.flareWaveMat);
+    this.flareWaveMesh.rotation.x = -Math.PI / 2;
+    this.flareWaveMesh.position.y = 0.08;
+    this.flareWaveMesh.visible = false;
+    this.worldGroup.add(this.flareWaveMesh);
 
     // Mây (Player)
     this.playerGroup = new THREE.Group();
@@ -358,7 +372,7 @@ export class IslandScene3D {
       }
     }
 
-    // Sync Ink Shadows
+    // Sync Ink Shadows & AI states
     for (let i = 0; i < state.shadows.length; i += 1) {
       const s = state.shadows[i];
       const vis = this.shadowVisuals.get(s.id);
@@ -366,6 +380,41 @@ export class IslandScene3D {
       vis.group.position.set(s.x, 0.85 + Math.sin(elapsedSec * 2.8 + i) * 0.14, s.z);
       vis.group.rotation.y = elapsedSec * 1.4 + i;
       vis.ring.rotation.z = elapsedSec * 1.8;
+
+      if (s.aiState === 'chase') {
+        vis.bodyMat.emissive.setHex(0xdc2626);
+        vis.bodyMat.emissiveIntensity = 1.1;
+        vis.ringMat.color.setHex(0xef4444);
+        vis.group.scale.setScalar(1.08);
+      } else if (s.aiState === 'alert') {
+        vis.bodyMat.emissive.setHex(0xd97706);
+        vis.bodyMat.emissiveIntensity = 0.9;
+        vis.ringMat.color.setHex(0xf59e0b);
+        vis.group.scale.setScalar(1.02);
+      } else if (s.aiState === 'repelled') {
+        vis.bodyMat.emissive.setHex(0x0ea5e9);
+        vis.bodyMat.emissiveIntensity = 0.45;
+        vis.ringMat.color.setHex(0x38bdf8);
+        vis.group.scale.setScalar(0.78);
+      } else {
+        vis.bodyMat.emissive.setHex(0x45126e);
+        vis.bodyMat.emissiveIntensity = 0.65;
+        vis.ringMat.color.setHex(0x7b2cbf);
+        vis.group.scale.setScalar(1.0);
+      }
+    }
+
+    // Sync Light Flare shockwave
+    const ticksSinceFlare = state.tick - state.lastFlareTick;
+    if (ticksSinceFlare >= 0 && ticksSinceFlare < 14) {
+      const progress = ticksSinceFlare / 14;
+      const radius = 0.5 + progress * FLARE_RADIUS;
+      this.flareWaveMesh.visible = true;
+      this.flareWaveMesh.position.set(state.player.x, 0.12, state.player.z);
+      this.flareWaveMesh.scale.setScalar(radius);
+      this.flareWaveMat.opacity = (1 - progress) * 0.85;
+    } else {
+      this.flareWaveMesh.visible = false;
     }
 
     // Smooth third-person camera

@@ -1,10 +1,10 @@
 import { createHash } from 'node:crypto';
 import { DT, round6 } from '../core/constants';
 import { createInitialState, stepSimulation } from '../core/engine';
-import { InputFrame, ScenarioFile, SimEvent } from '../core/types';
+import { InputFrame, ScenarioFile, ShadowAiState, SimEvent } from '../core/types';
 
-export const CONTRACT_VERSION = '1.0.0';
-export const CONTRACT_PHASE = 1;
+export const CONTRACT_VERSION = '1.1.0';
+export const CONTRACT_PHASE = 2;
 
 export interface HeadlessResult {
   contractVersion: string;
@@ -20,11 +20,19 @@ export interface HeadlessResult {
     z: number;
     hp: number;
     carriedFireflies: number;
+    flaresUsed: number;
+    flareCooldownTicks: number;
   };
   lanternsLit: number;
   lanternsTotal: number;
   firefliesCollected: number;
   firefliesTotal: number;
+  shadows: Array<{
+    id: string;
+    x: number;
+    z: number;
+    aiState: ShadowAiState;
+  }>;
   events: SimEvent[];
   digestSha256: string;
 }
@@ -68,6 +76,7 @@ export function expandScenarioInputs(scenario: ScenarioFile): InputFrame[] {
     moveX: 0,
     moveZ: 0,
     interact: false,
+    flare: false,
   }));
 
   for (const seg of scenario.inputs) {
@@ -78,6 +87,7 @@ export function expandScenarioInputs(scenario: ScenarioFile): InputFrame[] {
         moveX: seg.moveX,
         moveZ: seg.moveZ,
         interact: Boolean(seg.interact),
+        flare: Boolean(seg.flare),
       };
     }
   }
@@ -111,11 +121,19 @@ export function runScenario(rawScenario: unknown): HeadlessResult {
       z: state.player.z,
       hp: state.player.hp,
       carriedFireflies: state.player.carriedFireflies,
+      flaresUsed: state.player.flaresUsed,
+      flareCooldownTicks: state.player.flareCooldownTicks,
     },
     lanternsLit: state.lanterns.filter((l) => l.lit).length,
     lanternsTotal: state.lanterns.length,
     firefliesCollected: state.fireflies.filter((f) => f.collected).length,
     firefliesTotal: state.fireflies.length,
+    shadows: state.shadows.map((s) => ({
+      id: s.id,
+      x: s.x,
+      z: s.z,
+      aiState: s.aiState,
+    })),
     events: state.events,
   };
 

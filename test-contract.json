@@ -1,7 +1,7 @@
 {
-  "contractVersion": "1.0.0",
-  "phase": 1,
-  "assumptionNote": "Schema derived as explicit [ASSUMPTION] for headless grading compatibility; adapter lives in src/headless/contract.ts.",
+  "contractVersion": "1.1.0",
+  "phase": 2,
+  "assumptionNote": "Backward-compatible Phase 2 expansion: optional flare input, level-2 support, flaresUsed, and shadow aiState.",
   "entrypoint": "npm run headless -- --scenario <path> [--out <path>]",
   "determinism": true,
   "constants": {
@@ -17,11 +17,18 @@
     "playerMaxHp": 3,
     "shadowContactRadius": 1.2,
     "shadowInvulnTicks": 20,
-    "shadowSpeed": 2.5
+    "shadowSpeed": 2.5,
+    "shadowAlertRadius": 7.5,
+    "shadowChaseSpeed": 3.4,
+    "shadowChaseExitRadius": 10.5,
+    "flareRadius": 7.0,
+    "flareStunTicks": 60,
+    "flareCooldownTicks": 80,
+    "flareKnockback": 4.0
   },
   "inputSchema": {
     "scenarioId": "string",
-    "levelId": "string (default: level-1)",
+    "levelId": "string (level-1 | level-2, default: level-1)",
     "seed": "integer",
     "maxTicks": "integer > 0",
     "inputs": [
@@ -30,7 +37,8 @@
         "toTick": "integer >= fromTick",
         "moveX": "number [-1..1]",
         "moveZ": "number [-1..1]",
-        "interact": "boolean"
+        "interact": "boolean (optional)",
+        "flare": "boolean (optional)"
       }
     ]
   },
@@ -47,12 +55,15 @@
       "x": "number",
       "z": "number",
       "hp": "integer",
-      "carriedFireflies": "integer"
+      "carriedFireflies": "integer",
+      "flaresUsed": "integer",
+      "flareCooldownTicks": "integer"
     },
     "lanternsLit": "integer",
     "lanternsTotal": "integer",
     "firefliesCollected": "integer",
     "firefliesTotal": "integer",
+    "shadows": "Array<{ id, x, z, aiState }>",
     "events": "SimEvent[]",
     "digestSha256": "64-char hex SHA-256 over canonical payload excluding digestSha256"
   }

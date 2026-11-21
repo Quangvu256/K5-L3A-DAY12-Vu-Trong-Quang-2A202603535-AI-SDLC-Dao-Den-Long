@@ -24,6 +24,8 @@ export interface GreatLantern {
   lit: boolean;
 }
 
+export type ShadowAiState = 'patrol' | 'alert' | 'chase' | 'repelled';
+
 export interface InkShadow {
   id: string;
   x: number;
@@ -31,6 +33,8 @@ export interface InkShadow {
   patrolA: Vec2;
   patrolB: Vec2;
   targetIndex: 0 | 1;
+  aiState: ShadowAiState;
+  stunTicks: number;
 }
 
 export interface PlayerState {
@@ -41,6 +45,8 @@ export interface PlayerState {
   hp: number;
   invulnTicks: number;
   carriedFireflies: number;
+  flareCooldownTicks: number;
+  flaresUsed: number;
 }
 
 export interface LevelDefinition {
@@ -58,11 +64,19 @@ export interface InputFrame {
   moveX: number;
   moveZ: number;
   interact: boolean;
+  flare?: boolean;
 }
 
 export interface SimEvent {
   tick: number;
-  type: 'firefly_collected' | 'lantern_lit' | 'shadow_hit' | 'game_won' | 'game_lost';
+  type:
+    | 'firefly_collected'
+    | 'lantern_lit'
+    | 'shadow_hit'
+    | 'flare_cast'
+    | 'shadow_repelled'
+    | 'game_won'
+    | 'game_lost';
   entityId?: string;
 }
 
@@ -76,6 +90,7 @@ export interface GameState {
   tick: number;
   islandRadius: number;
   status: GameStatus;
+  lastFlareTick: number;
   player: PlayerState;
   obstacles: Obstacle[];
   fireflies: Firefly[];
@@ -90,6 +105,7 @@ export interface ScenarioInputSegment {
   moveX: number;
   moveZ: number;
   interact?: boolean;
+  flare?: boolean;
 }
 
 export interface ScenarioFile {
@@ -103,5 +119,6 @@ export interface ScenarioFile {
     lanternsLit?: number;
     firefliesCollected?: number;
     playerHp?: number;
+    flaresUsed?: number;
   };
 }

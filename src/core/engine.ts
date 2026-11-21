@@ -2,11 +2,18 @@ import {
   DT,
   FIREFLIES_PER_LANTERN,
   FIREFLY_PICKUP_RADIUS,
+  FLARE_COOLDOWN_TICKS,
+  FLARE_KNOCKBACK,
+  FLARE_RADIUS,
+  FLARE_STUN_TICKS,
   LANTERN_INTERACT_RADIUS,
   LANTERN_SAFE_RADIUS,
   PLAYER_MAX_HP,
   PLAYER_RADIUS,
   PLAYER_SPEED,
+  SHADOW_ALERT_RADIUS,
+  SHADOW_CHASE_EXIT_RADIUS,
+  SHADOW_CHASE_SPEED,
   SHADOW_CONTACT_RADIUS,
   SHADOW_INVULN_TICKS,
   SHADOW_SPEED,
@@ -14,7 +21,7 @@ import {
 } from './constants';
 import { getLevelDefinition } from './levels';
 import { createSeedState } from './rng';
-import { GameState, GreatLantern, InputFrame, Obstacle } from './types';
+import { GameState, GreatLantern, InkShadow, InputFrame, Obstacle } from './types';
 
 function cloneState(state: GameState): GameState {
   return {
@@ -100,6 +107,35 @@ function pushOutsideLitLanterns(
   return { x: round6(sx), z: round6(sz), pushed };
 }
 
+function isPointInSanctuary(x: number, z: number, lanterns: GreatLantern[]): boolean {
+  for (const lantern of lanterns) {
+    if (!lantern.lit) continue;
+    if (Math.hypot(x - lantern.x, z - lantern.z) <= LANTERN_SAFE_RADIUS) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function moveShadowAlongPatrol(shadow: InkShadow, stepDist: number): { x: number; z: number } {
+  const target = shadow.targetIndex === 0 ? shadow.patrolA : shadow.patrolB;
+  const dx = target.x - shadow.x;
+  const dz = target.z - shadow.z;
+  const dist = Math.hypot(dx, dz);
+
+  if (dist <= stepDist) {
+    shadow.targetIndex = shadow.targetIndex === 0 ? 1 : 0;
+    return { x: target.x, z: target.z };
+  }
+  if (dist > 1e-9) {
+    return {
+      x: shadow.x + (dx / dist) * stepDist,
+      z: shadow.z + (dz / dist) * stepDist,
+    };
+  }
+  return { x: shadow.x, z: shadow.z };
+}
+
 export function createInitialState(levelId = 'level-1', seed = 42): GameState {
   const level = getLevelDefinition(levelId);
   return {
@@ -110,6 +146,7 @@ export function createInitialState(levelId = 'level-1', seed = 42): GameState {
     tick: 0,
     islandRadius: level.islandRadius,
     status: 'running',
+    lastFlareTick: -999,
     player: {
       x: round6(level.playerStart.x),
       z: round6(level.playerStart.z),
@@ -118,6 +155,8 @@ export function createInitialState(levelId = 'level-1', seed = 42): GameState {
       hp: PLAYER_MAX_HP,
       invulnTicks: 0,
       carriedFireflies: 0,
+      flareCooldownTicks: 0,
+      flaresUsed: 0,
     },
     obstacles: level.obstacles.map((o) => ({ ...o })),
     fireflies: level.fireflies.map((f) => ({ ...f, collected: false })),
@@ -129,6 +168,8 @@ export function createInitialState(levelId = 'level-1', seed = 42): GameState {
       patrolA: { ...s.patrolA },
       patrolB: { ...s.patrolB },
       targetIndex: 1,
+      aiState: 'patrol',
+      stunTicks: 0,
     })),
     events: [],
   };
@@ -145,8 +186,19 @@ export function stepSimulation(prevState: GameState, input: InputFrame): GameSta
   if (state.player.invulnTicks > 0) {
     state.player.invulnTicks -= 1;
   }
+  if (state.player.flareCooldownTicks > 0) {
+    state.player.flareCooldownTicks -= 1;
+  }
+  for (const shadow of state.shadows) {
+    if (shadow.stunTicks > 0) {
+      shadow.stunTicks -= 1;
+      if (shadow.stunTicks === 0) {
+        shadow.aiState = 'patrol';
+      }
+    }
+  }
 
-  // 1. Player movement (normalized so diagonals never exceed PLAYER_SPEED)
+  // 1. Player movement
   const rawMag = Math.hypot(input.moveX, input.moveZ);
   if (rawMag > 1e-9) {
     const moveScale = rawMag > 1 ? 1 / rawMag : 1;
@@ -206,36 +258,100 @@ export function stepSimulation(prevState: GameState, input: InputFrame): GameSta
     }
   }
 
-  // 4. Ink Shadow patrol & sanctuary boundary push-out
-  const shadowStep = SHADOW_SPEED * DT;
-  for (const shadow of state.shadows) {
-    const target = shadow.targetIndex === 0 ? shadow.patrolA : shadow.patrolB;
-    const dx = target.x - shadow.x;
-    const dz = target.z - shadow.z;
-    const dist = Math.hypot(dx, dz);
+  // 4. Light Flare ability (Phase 2)
+  if (input.flare && state.player.flareCooldownTicks === 0 && state.player.carriedFireflies >= 1) {
+    state.player.carriedFireflies -= 1;
+    state.player.flareCooldownTicks = FLARE_COOLDOWN_TICKS;
+    state.player.flaresUsed += 1;
+    state.lastFlareTick = state.tick;
+    state.events.push({ tick: state.tick, type: 'flare_cast' });
 
-    let nx = shadow.x;
-    let nz = shadow.z;
-    if (dist <= shadowStep) {
-      nx = target.x;
-      nz = target.z;
-      shadow.targetIndex = shadow.targetIndex === 0 ? 1 : 0;
-    } else if (dist > 1e-9) {
-      nx += (dx / dist) * shadowStep;
-      nz += (dz / dist) * shadowStep;
+    for (const shadow of state.shadows) {
+      const dx = shadow.x - state.player.x;
+      const dz = shadow.z - state.player.z;
+      const dist = Math.hypot(dx, dz);
+      if (dist <= FLARE_RADIUS) {
+        const dirX = dist > 1e-9 ? dx / dist : 0;
+        const dirZ = dist > 1e-9 ? dz / dist : 1;
+        let pushedX = shadow.x + dirX * FLARE_KNOCKBACK;
+        let pushedZ = shadow.z + dirZ * FLARE_KNOCKBACK;
+
+        const maxR = state.islandRadius - PLAYER_RADIUS;
+        const r = Math.hypot(pushedX, pushedZ);
+        if (r > maxR) {
+          pushedX *= maxR / r;
+          pushedZ *= maxR / r;
+        }
+        const safePos = pushOutsideLitLanterns(pushedX, pushedZ, state.lanterns);
+        shadow.x = safePos.x;
+        shadow.z = safePos.z;
+        shadow.stunTicks = FLARE_STUN_TICKS;
+        shadow.aiState = 'repelled';
+        state.events.push({
+          tick: state.tick,
+          type: 'shadow_repelled',
+          entityId: shadow.id,
+        });
+      }
+    }
+  }
+
+  // 5. Ink Shadow AI state machine & movement
+  const playerInSanctuary = isPointInSanctuary(state.player.x, state.player.z, state.lanterns);
+  const patrolStep = SHADOW_SPEED * DT;
+  const chaseStep = SHADOW_CHASE_SPEED * DT;
+
+  for (const shadow of state.shadows) {
+    if (shadow.stunTicks > 0) {
+      shadow.aiState = 'repelled';
+      continue;
     }
 
-    const safePos = pushOutsideLitLanterns(nx, nz, state.lanterns);
+    const distToPlayer = Math.hypot(state.player.x - shadow.x, state.player.z - shadow.z);
+
+    if (playerInSanctuary) {
+      shadow.aiState = 'patrol';
+    } else if (shadow.aiState === 'patrol' && distToPlayer <= SHADOW_ALERT_RADIUS) {
+      shadow.aiState = 'alert';
+    } else if (shadow.aiState === 'alert') {
+      if (distToPlayer <= SHADOW_CHASE_EXIT_RADIUS) {
+        shadow.aiState = 'chase';
+      } else {
+        shadow.aiState = 'patrol';
+      }
+    } else if (shadow.aiState === 'chase' && distToPlayer > SHADOW_CHASE_EXIT_RADIUS) {
+      shadow.aiState = 'patrol';
+    }
+
+    let nextPos: { x: number; z: number };
+    if (shadow.aiState === 'chase') {
+      const dx = state.player.x - shadow.x;
+      const dz = state.player.z - shadow.z;
+      const dist = Math.hypot(dx, dz);
+      if (dist <= chaseStep || dist <= 1e-9) {
+        nextPos = { x: state.player.x, z: state.player.z };
+      } else {
+        nextPos = {
+          x: shadow.x + (dx / dist) * chaseStep,
+          z: shadow.z + (dz / dist) * chaseStep,
+        };
+      }
+    } else {
+      nextPos = moveShadowAlongPatrol(shadow, patrolStep);
+    }
+
+    const safePos = pushOutsideLitLanterns(nextPos.x, nextPos.z, state.lanterns);
     shadow.x = safePos.x;
     shadow.z = safePos.z;
-    if (safePos.pushed) {
+    if (safePos.pushed && shadow.aiState === 'patrol') {
       shadow.targetIndex = shadow.targetIndex === 0 ? 1 : 0;
     }
   }
 
-  // 5. Shadow contact damage
+  // 6. Shadow contact damage (only non-repelled shadows deal damage)
   if (state.player.invulnTicks === 0) {
     for (const shadow of state.shadows) {
+      if (shadow.aiState === 'repelled') continue;
       const dist = Math.hypot(state.player.x - shadow.x, state.player.z - shadow.z);
       if (dist <= SHADOW_CONTACT_RADIUS) {
         state.player.hp = Math.max(0, state.player.hp - 1);
@@ -250,7 +366,7 @@ export function stepSimulation(prevState: GameState, input: InputFrame): GameSta
     }
   }
 
-  // 6. Terminal win/loss checks
+  // 7. Terminal win/loss checks
   if (state.lanterns.every((l) => l.lit)) {
     state.status = 'won';
     state.events.push({ tick: state.tick, type: 'game_won' });
