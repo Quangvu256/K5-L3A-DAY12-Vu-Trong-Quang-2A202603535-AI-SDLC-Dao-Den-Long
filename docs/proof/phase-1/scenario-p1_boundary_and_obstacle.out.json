@@ -1,0 +1,22 @@
+{
+  "contractVersion": "1.0.0",
+  "phase": 1,
+  "scenarioId": "p1_boundary_and_obstacle",
+  "levelId": "level-1",
+  "seed": 42,
+  "status": "running",
+  "ticksElapsed": 160,
+  "simTimeSec": 8,
+  "player": {
+    "x": -23.176553,
+    "z": -3.226046,
+    "hp": 3,
+    "carriedFireflies": 0
+  },
+  "lanternsLit": 0,
+  "lanternsTotal": 3,
+  "firefliesCollected": 0,
+  "firefliesTotal": 6,
+  "events": [],
+  "digestSha256": "447b450c6a8748d46aed961d4a71bbb115ce11581b3fbcd6784a148bb62bc97a"
+}

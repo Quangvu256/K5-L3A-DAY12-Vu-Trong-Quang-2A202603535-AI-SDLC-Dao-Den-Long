@@ -1,0 +1,42 @@
+{
+  "contractVersion": "1.0.0",
+  "phase": 1,
+  "scenarioId": "p1_shadow_collision_loss",
+  "levelId": "level-1",
+  "seed": 42,
+  "status": "lost",
+  "ticksElapsed": 132,
+  "simTimeSec": 6.6,
+  "player": {
+    "x": 0,
+    "z": 11.4,
+    "hp": 0,
+    "carriedFireflies": 0
+  },
+  "lanternsLit": 0,
+  "lanternsTotal": 3,
+  "firefliesCollected": 0,
+  "firefliesTotal": 6,
+  "events": [
+    {
+      "tick": 52,
+      "type": "shadow_hit",
+      "entityId": "S1"
+    },
+    {
+      "tick": 90,
+      "type": "shadow_hit",
+      "entityId": "S1"
+    },
+    {
+      "tick": 132,
+      "type": "shadow_hit",
+      "entityId": "S1"
+    },
+    {
+      "tick": 132,
+      "type": "game_lost"
+    }
+  ],
+  "digestSha256": "0613449abbbb46164e7cb2ffdb5598d3f24377664932a2968bb62d9f3857172b"
+}

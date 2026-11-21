@@ -1,0 +1,72 @@
+{
+  "contractVersion": "1.0.0",
+  "phase": 1,
+  "scenarioId": "p1_collect_and_win",
+  "levelId": "level-1",
+  "seed": 42,
+  "status": "won",
+  "ticksElapsed": 143,
+  "simTimeSec": 7.15,
+  "player": {
+    "x": -8.4,
+    "z": 0,
+    "hp": 3,
+    "carriedFireflies": 0
+  },
+  "lanternsLit": 3,
+  "lanternsTotal": 3,
+  "firefliesCollected": 6,
+  "firefliesTotal": 6,
+  "events": [
+    {
+      "tick": 6,
+      "type": "firefly_collected",
+      "entityId": "F1"
+    },
+    {
+      "tick": 16,
+      "type": "firefly_collected",
+      "entityId": "F2"
+    },
+    {
+      "tick": 29,
+      "type": "lantern_lit",
+      "entityId": "L1"
+    },
+    {
+      "tick": 63,
+      "type": "firefly_collected",
+      "entityId": "F3"
+    },
+    {
+      "tick": 73,
+      "type": "firefly_collected",
+      "entityId": "F4"
+    },
+    {
+      "tick": 86,
+      "type": "lantern_lit",
+      "entityId": "L2"
+    },
+    {
+      "tick": 120,
+      "type": "firefly_collected",
+      "entityId": "F5"
+    },
+    {
+      "tick": 130,
+      "type": "firefly_collected",
+      "entityId": "F6"
+    },
+    {
+      "tick": 143,
+      "type": "lantern_lit",
+      "entityId": "L3"
+    },
+    {
+      "tick": 143,
+      "type": "game_won"
+    }
+  ],
+  "digestSha256": "2ce817372c43eafaf79440beb2039951116a0172d7cdae04c77b6d6a4e5477b5"
+}

@@ -1,0 +1,33 @@
+
+> dao-den-long@0.1.0 verify
+> node scripts/verify-all.mjs
+
+=== [1/4] TypeScript Typecheck ===
+
+> dao-den-long@0.1.0 typecheck
+> tsc --noEmit
+
+
+=== [2/4] Unit & Contract Tests (Vitest) ===
+
+> dao-den-long@0.1.0 test
+> vitest run
+
+
+[1m[46m RUN [49m[22m [36mv3.2.7 [39m[90mD:/VinUni/K5-L3A-DAY12-Vu-Trong-Quang-2A202603535-AI-SDLC-Dao-Den-Long[39m
+
+ [32m✓[39m tests/contract.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 15[2mms[22m[39m
+ [32m✓[39m tests/core.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 22[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m2 passed[39m[22m[90m (2)[39m
+[2m      Tests [22m [1m[32m9 passed[39m[22m[90m (9)[39m
+[2m   Start at [22m 11:43:13
+[2m   Duration [22m 783ms[2m (transform 143ms, setup 0ms, collect 238ms, tests 37ms, environment 0ms, prepare 395ms)[22m
+
+
+=== [3/4] Headless Scenario Execution & Determinism Double-Check ===
+[OK] p1_boundary_and_obstacle.json -> status=running, ticks=160, lanterns=0/3, digest=447b450c6a87...
+[OK] p1_collect_and_win.json -> status=won, ticks=143, lanterns=3/3, digest=2ce817372c43...
+[OK] p1_shadow_collision_loss.json -> status=lost, ticks=132, lanterns=0/3, digest=0613449abbbb...
+
+=== [4/4] Verification Gate PASSED ===
